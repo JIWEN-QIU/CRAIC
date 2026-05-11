@@ -1,0 +1,6 @@
+<launch>
+    <node pkg="mission_planner" name="waypoint_mission" type="waypoint_mission" output="screen">
+        <rosparam command="load" file="$(find mission_planner)/config/waypoint.yaml"></rosparam>
+        <param name="waypoints_file_name" value="bridge.txt" type="string"></param>
+    </node>
+</launch>

@@ -1,0 +1,21 @@
+<launch>
+
+
+    <arg name="max_v" default="1.0"/>
+    <arg name="max_a" default="1.0"/>
+    <arg name="density_inv" default="32"/>
+    <arg name="map_seed" default="1"/>
+
+    <param name="/density_inv" value="$(arg density_inv)" type="int"/>
+    <param name="/max_v" value="$(arg max_v)" type="double"/>
+    <param name="/max_a" value="$(arg max_a)" type="double"/>`
+    <param name="/map_seed" value="$(arg map_seed)" type="int"/>
+    <param name="/planner_id" value="4" type="int"/>
+    <param name="/benchmark_en" value="true" type="bool"/>
+    <node pkg="super_planner" name="fsm_node" type="super_bench_node" output="screen">
+    </node>
+
+    <node pkg="test_interface" name="b_ref" type="benchmark_referee" output="screen">
+    </node>
+
+</launch>

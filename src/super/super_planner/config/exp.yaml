@@ -1,0 +1,129 @@
+# fsm_node:
+fsm:
+  # click_goal_topic: "/planning/next_viewpoint"
+  replan_rate: 10.0
+  click_yaw_en: true
+  cmd_topic: "/setpoints_cmd"
+  # mpc_cmd_type: 1 for PVAJ, 2 for poly traj
+  mpc_cmd_type: 2
+  #    mpc_cmd_topic: "/planning_cmd/mpc"
+  mpc_cmd_topic: "/planning_cmd/poly_traj"
+
+super_planner:
+  frontend_in_known_free: true
+  goal_yaw_en: true
+  corridor_bound_dis: 0.8
+  corridor_line_max_length: 0.5
+  safe_corridor_line_max_length: 1.0
+  planning_horizon: 8
+  receding_dis: 2
+  # [WARN] the robot r should equal to decaymap resolution[0] * infalate dis.
+  robot_r: 0.2
+  yaw_dot_max: 3.0
+  # Yaw mode: 1 heading to velocity, 2 heading to goal
+  yaw_mode: 1
+
+
+traj_opt:
+  boundary:
+    max_vel: 0.8
+    max_acc: 1.5
+    max_jerk: 10.0
+    max_omg: 1.2
+    max_acc_thr: 17.0
+    min_acc_thr: 3.0
+    penna_margin: 0.05
+    # max_vel: 7.0
+    # max_acc: 7.0
+    # max_jerk: 120.0
+    # max_omg: 2.5
+    # max_acc_thr: 17.0
+    # min_acc_thr: 6.0
+    # penna_margin: 0.05
+
+  exp_traj:
+    opt_accuracy: 2.0e-6
+    penna_scale: 1.0e+4
+    penna_t: 0.1
+    penna_pos: 100
+    penna_vel: 10
+    penna_acc: 10
+    penna_jerk: 10
+    penna_attract: 10
+    penna_omg: -1
+    penna_thr: -1
+
+  backup_traj:
+    penna_scale: 1.0e+4
+    penna_t: 10.0
+    penna_ts: 1000.0
+    penna_pos: 10000.0
+    penna_vel: 10000.0
+    penna_acc: 10000.0
+    penna_jerk: -1
+    penna_attract: -1
+    penna_omg: -1
+    penna_thr: -1
+
+astar:
+  map_voxel_num: [ 500, 500, 100 ]
+  visual_process: false
+  allow_diag: true
+  # 0 DIAG; 1 MANHATTAN; 2 EUCLIDEAN
+  heu_type: 2
+  debug_visualization_en: false
+
+rog_map:
+  resolution: 0.1
+  inflation_resolution: 0.1
+  inflation_step: 2
+  block_inf_pt: false
+  map_size: [ 50,50,20 ]
+  fix_map_origin: [ 130,80,10 ]
+  # Virtual ceil and ground
+  virtual_ceil_height: 1.3
+  virtual_ground_height: -999
+
+  map_sliding:
+    enable: true
+    # The minimum distance [m] to slide the map.
+    threshold: 0.9
+    # If the map rolling is disable, the map origin [m] should be set.
+
+
+  visulization:
+    enbale: true
+    # The rate of visualization [Hz], if set to 0, the visualization will not be triggered by frame.
+    time_rate: 2
+    # The frame rate of visualization [Hz], if set to 0, the visualization will not be triggered by frame.
+    frame_rate: 0
+    # visualization range along the odom [m].
+    range: [ 10, 10, 5 ]
+    frame_id: "world"
+    pub_unknown_map_en: false
+
+  # Intensity filter for input point cloud. If the point intensity is less than this value,
+  # it will be ignored (to avoid noise like dusk).
+  intensity_thresh: -10
+  # The temporal downsample rate for input point cloud.
+  #  e.g. if set to k, the point cloud will be downsampled to 1/k.
+  point_filt_num: 5
+
+  # Probabilistc update
+  raycasting:
+    # if disable, the map will only maintain occupied information, and all other grid
+    # will be considered as unknown.
+    enable: true
+    blind_filter_en: false
+
+    batch_update_size: 1
+    local_update_box: [ 40, 40, 20 ]
+    # The range of raycasting [m].
+    ray_range: [ 0.5, 30 ]
+
+    p_min: 0.12
+    p_miss: 0.44
+    p_free: 0.45
+    p_occ: 0.85
+    p_hit: 0.86
+    p_max: 0.98

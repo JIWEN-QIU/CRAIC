@@ -1,0 +1,4 @@
+[submodule "mars_planning_toolkit"]
+	path = mars_planning_toolkit
+	url = ./mars_planning_toolkit
+	branch = wo_rm

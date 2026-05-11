@@ -1,0 +1,9 @@
+<launch>
+    <node pkg="mission_planner" name="waypoint_mission" type="waypoint_mission" output="screen">
+        <rosparam command="load" file="$(find mission_planner)/config/waypoint.yaml"></rosparam>
+        <param name="waypoints_file_name" value="fule.txt" type="string"></param>
+    </node>
+    <rosparam command="load" file="$(find super_planner)/config/fule.yaml"></rosparam>
+    <node pkg="super_planner" name="fsm_node" type="fsm_node" output="screen">
+    </node>
+</launch>

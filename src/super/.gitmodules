@@ -1,0 +1,6 @@
+[submodule "mars_planning_toolkit"]
+	path = mars_planning_toolkit
+	url = git@github.com:RENyunfan/mars_planning_toolkit.git
+[submodule "ROG-Map"]
+	path = ROG-Map
+	url = git@github.com:RENyunfan/ROG-Map.git

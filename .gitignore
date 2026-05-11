@@ -1,0 +1,35 @@
+# ROS/catkin build products
+build/
+devel/
+install/
+logs/
+.catkin_workspace
+
+# Local build and IDE files
+cmake-build-debug/
+.idea/
+.vscode/
+
+# OS and Python cache files
+.DS_Store
+__pycache__/
+*.py[cod]
+
+# Compiled objects and libraries
+*.o
+*.so
+*.a
+!src/odin_ros_driver/lib/
+!src/odin_ros_driver/lib/*.a
+
+# Robotics data and generated artifacts
+*.bag
+*.pcd
+*.ply
+*.csv
+
+# odin_ros_driver local runtime outputs
+src/odin_ros_driver/recorddata/
+src/odin_ros_driver/config/calib.yaml
+src/odin_ros_driver/log/
+src/odin_ros_driver/map/

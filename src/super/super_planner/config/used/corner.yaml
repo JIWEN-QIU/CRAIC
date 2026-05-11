@@ -1,0 +1,184 @@
+fsm_node:
+  fsm:
+    swarm_en: false
+    bench_en: false
+    auto_pilot_en: false
+    click_goal_en: true
+    odom_goal_en: false
+    #    odom_goal_topic: "/odom_goal"
+    click_goal_topic: "/goal"
+#    click_goal_topic: "/planning/click_goal"
+    path_goal_topic: "/planning/path_goal"
+    replan_rate: 10
+    auto_pilot_speed: 3.0
+    auto_pilot_yaw_speed: 1.0
+    click_height: -999
+    # if use the yaw ange in /goal as the goal yaw direction
+    click_yaw_en: false
+    cmd_topic: "/planning/pos_cmd"
+    #    cmd_topic: "/quad_1/planning/pos_cmd"
+    # mpc_cmd_type: 1 for PVAJ, 2 for poly traj
+    mpc_cmd_type: 1
+    mpc_cmd_topic: "/planning_cmd/mpc"
+#    mpc_cmd_topic: "/planning_cmd/poly_traj"
+
+
+  super_planner:
+    print_log: false
+    frontend_in_known_free: false
+    goal_vel_en: false
+    visual_process: false
+    use_fov_cut: corner.txttrue
+    # 走廊生成的上限Bounding Box
+    corridor_bound_dis: 1.5
+    corridor_line_max_length: 1.0
+    safe_corridor_line_max_length: 99
+    iris_iter_num: 2
+    back_traj_dis_acc: 8.0
+    obs_skip_num: 2
+    # Replan时往前看多少秒
+    replan_forward_dt: 0.1
+    planning_horizon: 10
+    receding_dis: 0.5
+    # [WARN] the robot r should equal to decaymap resolution[0] * infalate dis.
+    robot_r: 0.3
+    yaw_dot_max: 1.5
+    # Yaw mode: 1 heading to velocity, 2 heading to goal
+    yaw_mode: 1
+
+
+  traj_opt:
+    swarm:
+      enable: false
+      swarm_clearance: -1
+      penna_swarm: -1
+
+    switch:
+      save_log_en: false
+
+    flatness:
+      mass: 1.644
+      dh: 0.35
+      dv: 0.5
+      cp: 0.001
+      v_eps: 0.0001
+      grav: 9.81
+
+    boundary:
+      max_vel: 8.0
+      max_acc: 8.0
+      max_jerk: 50.0
+      max_omg: 1.2
+      max_acc_thr: 13.0
+      min_acc_thr: 7.0
+
+    exp_traj:
+      # for swarm
+      pos_constraint_type: 2
+      piece_num: 1
+      block_energy_cost: false
+      opt_accuracy: 1.0e-6
+      integral_reso: 15
+      smooth_eps: 0.01
+      penna_t: 1.0e+4
+      penna_pos: 1.0e+7
+      penna_vel: 5.0e+7
+      penna_acc: -5.0e+7
+      penna_jerk: -1.0e+10 #
+      penna_attract: -1.0e+6
+      penna_omg: 1.0e+7
+      penna_thr: 1.0e+7
+
+    backup_traj:
+      # for swarm
+      pos_constraint_type: 2
+      piece_num: 2
+      block_energy_cost: true
+      opt_accuracy: 1.0e-5
+      integral_reso: 15
+      smooth_eps: 0.01
+      penna_t: 1.0e+6
+      penna_ts: 1.0e+7
+      penna_pos: 1.0e+10
+      penna_vel: -5.0e+5
+      penna_acc: -5.0e+7
+      penna_jerk: -1.0e+10 #
+      penna_attract: -1.0e+6
+      penna_omg: 1.0e+8
+      penna_thr: 1.0e+8
+
+
+  astar:
+    map_voxel_num: [ 200, 200, 51 ]
+    visual_process: false
+    allow_diag: true
+    # 0 DIAG; 1 MANHATTAN; 2 EUCLIDEAN
+    heu_type: 2
+
+  rog_map:
+    safe_margin: 0.0
+    resolution: 0.2
+    inflation_resolution: 0.6
+    inflation_step: 2
+    map_size: [ 100,100,10 ]
+
+    # Virtual ceil and grounn
+    virtual_ceil_height: 999
+    virtual_ground_height: -999
+
+    map_sliding:
+      enable: true
+      # The minimum distance [m] to slide the map.
+      threshold: 1.0
+      # If the map rolling is disable, the map origin [m] should be set.
+      fix_map_origin: [ 0,0,2.5 ]
+
+    frontier_extraction_en: false
+
+    # If [enbale = true], the ROG-Map will actively take ros topic as input.
+    #  else user should call function [updateMap] to update the map.
+    ros_callback:
+      enable: true
+      cloud_topic: "/cloud_registered"
+      odom_topic: "/lidar_slam/odom"
+      odom_timeout: 2.0
+
+    visulization:
+      enbale: true
+      # The rate of visualization [Hz], if set to 0, the visualization will not be triggered by frame.
+      time_rate: 10
+      # The frame rate of visualization [Hz], if set to 0, the visualization will not be triggered by frame.
+      frame_rate: 0
+      # visualization range along the odom [m].
+      range: [ 20, 20, 5 ]
+      frame_id: "world"
+      pub_unknown_map_en: false
+
+    # Intensity filter for input point cloud. If the point intensity is less than this value,
+    # it will be ignored (to avoid noise like dusk).
+    intensity_thresh: -1
+    # The temporal downsample rate for input point cloud.
+    #  e.g. if set to k, the point cloud will be downsampled to 1/k.
+    point_filt_num: 20
+
+    # Probabilistc update
+    raycasting:
+      # if disable, the map will only maintain occupied information, and all other grid
+      # will be considered as unknown.
+      enable: false
+      batch_update_size: 1
+      local_update_box: [ 50, 50, 5 ]
+      # The range of raycasting [m].
+      ray_range: [ 0.5, 30 ]
+
+      p_min: 0.12
+      p_miss: 0.4999
+      p_free: 0.4999999
+      p_occ: 0.8
+      p_hit: 0.8
+      p_max: 0.98
+      # The threshold of a non-occupied inf map grid to be considered as free. [0.0-1.0]
+      # which means for a gird contains [u] unknown grids and [f] known free grids.
+      # if [f/(f+u) > inf_map_known_free_thresh], the grid will be considered as free.
+      #  e.g. this thresh is set to 1.0, it measn a inf map grid is considered as free only if all grids in it are known free.
+      inf_map_known_free_thresh: 0.5
