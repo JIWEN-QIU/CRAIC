@@ -1,0 +1,12 @@
+<launch>
+    <node pkg="craic_odin_px4_adapter"
+          type="simple_waypoint_test.py"
+          name="simple_waypoint_test"
+          output="screen">
+        <param name="odom_topic" value="/odin/odom_for_px4ctrl"/>
+        <param name="cmd_topic" value="/setpoints_cmd"/>
+        <param name="rate_hz" value="30.0"/>
+        <param name="step" value="0.5"/>
+        <param name="hold_time" value="5.0"/>
+    </node>
+</launch>
