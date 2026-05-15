@@ -22,8 +22,11 @@
     <arg name="max_vel" default="0.5"/>
     <arg name="max_acc" default="1.0"/>
     <arg name="frontend_in_known_free" default="false"/>
-    <arg name="virtual_ceil_height" default="1.3"/>
-    <arg name="virtual_ground_height" default="-0.2"/>
+    <arg name="virtual_ceil_height" default="3.0"/>
+    <arg name="virtual_ground_height" default="-0.5"/>
+    <arg name="corridor_bound_dis" default="1.2"/>
+    <arg name="corridor_line_max_length" default="1.5"/>
+    <arg name="safe_corridor_line_max_length" default="2.0"/>
 
     <include if="$(arg start_odom_adapter)"
              file="$(find craic_odin_px4_adapter)/launch/odin_to_mavros_pose.launch">
@@ -64,6 +67,9 @@
             avoided, and SUPER replans as new obstacles appear.
         -->
         <param name="super_planner/frontend_in_known_free" value="$(arg frontend_in_known_free)"/>
+        <param name="super_planner/corridor_bound_dis" value="$(arg corridor_bound_dis)"/>
+        <param name="super_planner/corridor_line_max_length" value="$(arg corridor_line_max_length)"/>
+        <param name="super_planner/safe_corridor_line_max_length" value="$(arg safe_corridor_line_max_length)"/>
 
         <param name="rog_map/ros_callback/enable" value="true"/>
         <param name="rog_map/ros_callback/odom_topic" value="$(arg super_odom_topic)"/>
