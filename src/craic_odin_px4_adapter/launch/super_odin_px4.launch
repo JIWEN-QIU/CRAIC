@@ -27,6 +27,11 @@
     <arg name="corridor_bound_dis" default="1.2"/>
     <arg name="corridor_line_max_length" default="1.5"/>
     <arg name="safe_corridor_line_max_length" default="2.0"/>
+    <arg name="point_filt_num" default="10"/>
+    <arg name="ray_range_max" default="12.0"/>
+    <arg name="local_update_box_x" default="16.0"/>
+    <arg name="local_update_box_y" default="16.0"/>
+    <arg name="local_update_box_z" default="6.0"/>
 
     <include if="$(arg start_odom_adapter)"
              file="$(find craic_odin_px4_adapter)/launch/odin_to_mavros_pose.launch">
@@ -78,6 +83,9 @@
         <rosparam param="rog_map/fix_map_origin">[0, 0, 0]</rosparam>
         <param name="rog_map/virtual_ceil_height" value="$(arg virtual_ceil_height)"/>
         <param name="rog_map/virtual_ground_height" value="$(arg virtual_ground_height)"/>
+        <param name="rog_map/point_filt_num" value="$(arg point_filt_num)"/>
+        <rosparam subst_value="true" param="rog_map/raycasting/ray_range">[0.5, $(arg ray_range_max)]</rosparam>
+        <rosparam subst_value="true" param="rog_map/raycasting/local_update_box">[$(arg local_update_box_x), $(arg local_update_box_y), $(arg local_update_box_z)]</rosparam>
 
         <param name="traj_opt/boundary/max_vel" value="$(arg max_vel)"/>
         <param name="traj_opt/boundary/max_acc" value="$(arg max_acc)"/>
