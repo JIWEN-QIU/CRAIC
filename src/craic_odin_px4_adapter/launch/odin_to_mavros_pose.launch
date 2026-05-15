@@ -1,11 +1,24 @@
 <launch>
+    <arg name="input_odom_topic" default="/odin1/odometry_highfreq"/>
+
     <node pkg="craic_odin_px4_adapter"
           type="odin_to_mavros_pose.py"
           name="odin_to_mavros_pose"
           output="screen">
-        <param name="input_odom_topic" value="/odin1/odometry_highfreq"/>
+        <param name="input_odom_topic" value="$(arg input_odom_topic)"/>
         <param name="output_pose_topic" value="/mavros/vision_pose/pose"/>
         <param name="output_frame_id" value="odom"/>
         <param name="publish_rate" value="50.0"/>
+    </node>
+
+    <node pkg="craic_odin_px4_adapter"
+          type="odin_to_px4ctrl_odom.py"
+          name="odin_to_px4ctrl_odom"
+          output="screen">
+        <param name="input_odom_topic" value="$(arg input_odom_topic)"/>
+        <param name="output_odom_topic" value="/odin/odom_for_px4ctrl"/>
+        <param name="output_frame_id" value="odom"/>
+        <param name="output_child_frame_id" value="base_link"/>
+        <param name="publish_rate" value="120.0"/>
     </node>
 </launch>

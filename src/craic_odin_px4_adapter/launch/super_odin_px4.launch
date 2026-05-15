@@ -1,0 +1,71 @@
+<launch>
+    <!--
+        SUPER planner integration for the Odin + PX4Ctrl stack.
+
+        Start Odin and MAVROS separately, then launch this file. Do not run
+        simple_waypoint_test.launch at the same time, because both publish
+        quadrotor_msgs/PositionCommand to the same /setpoints_cmd topic.
+    -->
+
+    <arg name="start_odom_adapter" default="true"/>
+    <arg name="start_px4ctrl" default="true"/>
+
+    <arg name="input_odin_odom_topic" default="/odin1/odometry_highfreq"/>
+    <arg name="super_odom_topic" default="/odin/odom_for_px4ctrl"/>
+    <arg name="super_cloud_topic" default="/odin1/cloud_slam"/>
+    <arg name="super_goal_topic" default="/goal"/>
+    <arg name="super_cmd_topic" default="/setpoints_cmd"/>
+    <arg name="rviz_goal_topic" default="/move_base_simple/goal"/>
+    <arg name="rviz_goal_height" default="1.0"/>
+    <arg name="rviz_use_current_height" default="false"/>
+
+    <arg name="max_vel" default="0.8"/>
+    <arg name="max_acc" default="1.5"/>
+    <arg name="virtual_ceil_height" default="1.3"/>
+    <arg name="virtual_ground_height" default="-0.2"/>
+
+    <include if="$(arg start_odom_adapter)"
+             file="$(find craic_odin_px4_adapter)/launch/odin_to_mavros_pose.launch">
+        <arg name="input_odom_topic" value="$(arg input_odin_odom_topic)"/>
+    </include>
+
+    <include if="$(arg start_px4ctrl)"
+             file="$(find px4ctrl)/launch/run_ctrl.launch"/>
+
+    <node pkg="craic_odin_px4_adapter"
+          type="rviz_goal_to_super.py"
+          name="rviz_goal_to_super"
+          output="screen">
+        <param name="input_topic" value="$(arg rviz_goal_topic)"/>
+        <param name="output_topic" value="$(arg super_goal_topic)"/>
+        <param name="odom_topic" value="$(arg super_odom_topic)"/>
+        <param name="goal_height" value="$(arg rviz_goal_height)"/>
+        <param name="use_current_height" value="$(arg rviz_use_current_height)"/>
+        <param name="output_frame_id" value="odom"/>
+    </node>
+
+    <node pkg="super_planner"
+          type="fsm_node"
+          name="super_fsm_node"
+          output="screen">
+        <rosparam command="load" file="$(find super_planner)/config/exp_advanced_params.yaml"/>
+        <rosparam command="load" file="$(find super_planner)/config/exp.yaml"/>
+
+        <param name="fsm/click_goal_en" value="true"/>
+        <param name="fsm/auto_pilot_en" value="false"/>
+        <param name="fsm/path_goal_en" value="false"/>
+        <param name="fsm/click_goal_topic" value="$(arg super_goal_topic)"/>
+        <param name="fsm/cmd_topic" value="$(arg super_cmd_topic)"/>
+
+        <param name="rog_map/ros_callback/enable" value="true"/>
+        <param name="rog_map/ros_callback/odom_topic" value="$(arg super_odom_topic)"/>
+        <param name="rog_map/ros_callback/cloud_topic" value="$(arg super_cloud_topic)"/>
+        <param name="rog_map/visulization/frame_id" value="odom"/>
+        <rosparam param="rog_map/fix_map_origin">[0, 0, 0]</rosparam>
+        <param name="rog_map/virtual_ceil_height" value="$(arg virtual_ceil_height)"/>
+        <param name="rog_map/virtual_ground_height" value="$(arg virtual_ground_height)"/>
+
+        <param name="traj_opt/boundary/max_vel" value="$(arg max_vel)"/>
+        <param name="traj_opt/boundary/max_acc" value="$(arg max_acc)"/>
+    </node>
+</launch>

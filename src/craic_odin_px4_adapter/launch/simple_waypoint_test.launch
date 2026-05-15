@@ -5,6 +5,7 @@
           output="screen">
         <param name="odom_topic" value="/odin/odom_for_px4ctrl"/>
         <param name="cmd_topic" value="/setpoints_cmd"/>
+        <param name="trigger_topic" value="/traj_start_trigger"/>
         <param name="rate_hz" value="30.0"/>
         <param name="step" value="0.5"/>
         <param name="hold_time" value="5.0"/>
