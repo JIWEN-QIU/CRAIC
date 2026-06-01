@@ -1,0 +1,13 @@
+<launch>
+  <!-- 启动 usb_cam 节点，并设置参数 -->
+  <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
+    <param name="video_device" value="/dev/video0" />
+    <param name="pixel_format" value="mjpeg" />
+    <param name="image_width" value="640" />
+    <param name="image_height" value="480" />
+    <param name="framerate" value="30" />
+  </node>
+  
+  <!-- 可选：同时启动 rqt_image_view 查看图像 -->
+  <node name="rqt_image_view" pkg="rqt_image_view" type="rqt_image_view" />
+</launch>

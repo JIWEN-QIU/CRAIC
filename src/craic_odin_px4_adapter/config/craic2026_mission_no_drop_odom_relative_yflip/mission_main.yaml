@@ -1,0 +1,55 @@
+mission_name: craic2026_drop_enabled_odom_relative_yflip_v0
+global_config: mission_00_global.yaml
+
+coordinate_policy:
+  yaml_points_are: odom_relative
+  publish_frame_expected: odom
+  transform_already_applied: true
+  field_to_odom_formula:
+    odom_x: "field_x - 1.5"
+    odom_y: "-(field_y - 3.0)"
+    odom_z: "field_z"
+
+safety_check_before_flight:
+  - "确认 /odin/odom_for_px4ctrl 在起飞点附近 x≈0, y≈0"
+  - "确认手动移动到二维码方向时 odom x 增加"
+  - "确认手动移动到比赛场地图 +y 方向时 odom y 减小"
+  - "先测试 takeoff -> qr_observe 短路径，不要直接跑完整任务"
+
+task_completion_policy:
+  type: final_waypoint_hold
+  final_hold_time: 2.0
+  only_final_waypoint_holds: true
+  intermediate_waypoint_hold_time: 0.0
+  perception_required: false
+  landing_task_exception:
+    type: trigger_px4ctrl_land_on_arrival
+    final_hold_time: 0.0
+    takeoff_land_topic: "/px4ctrl/takeoff_land"
+  scan_targets_exception:
+    task_file: mission_03_scan_targets.yaml
+    type: per_waypoint_descend_infer
+    cruise_z: 1.60
+    scan_z: 0.12
+    infer_timeout: 10.0
+    result_topic: "/target_info"
+
+task_sequence:
+  - file: mission_01_takeoff_qr.yaml
+    enabled: true
+
+  - file: mission_02_orbit.yaml
+    enabled: true
+
+  - file: mission_03_scan_targets.yaml
+    enabled: true
+
+  - file: mission_04_special.yaml
+    enabled: true
+
+  - file: mission_05_ring.yaml
+    enabled: true
+
+  - file: mission_06_land.yaml
+    enabled: true
+    branch_by: qr_landing_side

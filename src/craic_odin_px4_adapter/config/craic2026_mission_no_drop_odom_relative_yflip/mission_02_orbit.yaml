@@ -1,0 +1,49 @@
+mission_segment: orbit_obstacle
+coordinate_frame: odom_relative
+publish_frame_expected: odom
+transform_already_applied: true
+
+orbit:
+  obstacle_center: [4.3, 0.0]
+  radius: 1.0
+  direction: clockwise
+  semantic_note: "waypoint 名称 right/bottom/left/top 指比赛场地图语义，不指 odom y 的视觉直觉"
+  no_extra_exit_top: true
+
+waypoints:
+  - id: orbit_entry_right
+    point: [3.3, 0.0, 1.60]
+    action: orbit_waypoint
+    hold_time: 0.0
+    yaw: null
+
+  - id: orbit_bottom
+    point: [4.3, 1.0, 1.60]
+    action: orbit_waypoint
+    hold_time: 0.0
+    yaw: null
+
+  - id: orbit_left
+    point: [5.3, 0.0, 1.60]
+    action: orbit_waypoint
+    hold_time: 0.0
+    yaw: null
+
+  - id: orbit_top
+    point: [4.3, -1.0, 1.60]
+    action: orbit_waypoint
+    hold_time: 0.0
+    yaw: null
+
+  - id: orbit_exit_right
+    point: [3.3, 0.0, 1.60]
+    action: orbit_waypoint
+    hold_time: 2.0
+    yaw: null
+
+completion:
+  type: final_waypoint_hold
+  final_waypoint: orbit_exit_right
+  final_hold_time: 2.0
+  perception_required: false
+  note: "到达 orbit_exit_right 并停留 2 秒即完成；不添加 orbit_exit_top。"

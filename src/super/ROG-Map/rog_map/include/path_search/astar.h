@@ -227,7 +227,7 @@ namespace path_search {
                                         const int &flag,
                                         const double &searching_horizon,
                                         vec_Vec3f &out_path,
-                                        const double &time_out = 0.1) {
+                                        const double &time_out = 0.5) {
             RET_CODE setup_ret = setup(start_pt, end_pt, flag, searching_horizon);
             if (setup_ret != type_utils::SUCCESS) {
                 return setup_ret;

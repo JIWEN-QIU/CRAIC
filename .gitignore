@@ -27,6 +27,11 @@ __pycache__/
 *.pcd
 *.ply
 *.csv
+camera_frames/
+src/camera/uav_deployment/debug_two_stage/
+uav_deployment-tranCV/
+=2023.0.0
+src/px4ctrl/.git-submodule-backup
 
 # odin_ros_driver local runtime outputs
 src/odin_ros_driver/recorddata/

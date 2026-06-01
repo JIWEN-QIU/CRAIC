@@ -1,0 +1,91 @@
+mission_name: craic2026_fixed_route_drop_enabled_odom_relative_yflip_v0
+
+coordinate_frame:
+  source_frame: odom_relative
+  unit: meter
+  origin_description: "无人机起飞点作为 odom 近似原点"
+  transform_from_field_map:
+    takeoff_field_xy: [1.5, 3.0]
+    formula:
+      odom_x: "field_x - 1.5"
+      odom_y: "-(field_y - 3.0)"
+      odom_z: "field_z"
+    verified_assumption:
+      - "odom x 与比赛场地图 field_map x 方向一致"
+      - "odom y 与比赛场地图 field_map y 方向相反"
+      - "odom z 与高度方向一致"
+  warning:
+    - "该配置依赖每次起飞点摆放一致"
+    - "执行实机飞行前必须确认起飞点 odom position 接近 [0, 0, 0]"
+    - "如果 odom 原点或方向变化，必须重新生成本目录 YAML"
+
+height:
+  cruise_z: 1.60
+  qr_observe_z: 1.60
+  qr_scan_z: 0.52
+  orbit_z: 1.60
+  target_scan_z: 1.60
+  target_scan_descent_z: 0.12
+  special_z: 1.60
+  special_drop_descent_z: 0.12
+  ring_z: 1.60
+  landing_approach_z: 1.60
+
+motion:
+  default_speed: 0.5
+  slow_speed: 0.3
+  accept_radius_xy: 0.15
+  accept_radius_z: 0.10
+  hold_time_default: 0.0
+
+task_completion_policy:
+  type: final_waypoint_hold
+  final_hold_time: 2.0
+  only_final_waypoint_holds: true
+  intermediate_waypoint_hold_time: 0.0
+  perception_required: false
+  landing_task_exception:
+    type: trigger_px4ctrl_land_on_arrival
+    final_hold_time: 0.0
+    takeoff_land_topic: "/px4ctrl/takeoff_land"
+  scan_targets_exception:
+    type: per_waypoint_descend_infer
+    cruise_z: 1.60
+    scan_z: 0.12
+    infer_timeout: 10.0
+    result_topic: "/target_info"
+
+odom_relative_points:
+  takeoff: [0.0, 0.0]
+  qr: [1.8, 0.0]
+  obstacle_center: [4.3, 0.0]
+
+  image_top_left: [3.6, -1.6]
+  image_top_right: [1.8, -1.6]
+  image_bottom_right: [1.8, 1.6]
+  image_bottom_left: [3.6, 1.6]
+
+  special_target: [6.0, 1.0]
+
+  ring_search_start: [7.2, -1.6]
+  ring_search_mid: [6.0, -1.6]
+  ring_search_end: [4.8, -1.6]
+  ring_x_range_odom_relative: [4.8, 7.2]
+
+  landing_left: [0.0, 1.6]
+  landing_right: [0.0, -1.6]
+
+field_reference_points:
+  takeoff: [1.5, 3.0]
+  qr: [3.3, 3.0]
+  obstacle_center: [5.8, 3.0]
+  image_top_left: [5.1, 4.6]
+  image_top_right: [3.3, 4.6]
+  image_bottom_right: [3.3, 1.4]
+  image_bottom_left: [5.1, 1.4]
+  special_target: [7.5, 2.0]
+  ring_search_start: [8.7, 4.6]
+  ring_search_mid: [7.5, 4.6]
+  ring_search_end: [6.3, 4.6]
+  landing_left: [1.5, 1.4]
+  landing_right: [1.5, 4.6]

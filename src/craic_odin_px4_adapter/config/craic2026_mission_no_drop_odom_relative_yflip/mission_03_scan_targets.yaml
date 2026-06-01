@@ -1,0 +1,56 @@
+mission_segment: scan_image_targets
+coordinate_frame: odom_relative
+publish_frame_expected: odom
+transform_already_applied: true
+
+scan_policy:
+  route_type: snake
+  stop_after_found_all_qr_targets: false
+  no_drop_version: false
+  descend_for_drop: true
+  drop_enabled: true
+  per_waypoint_inference: true
+  cruise_z: 1.60
+  scan_z: 0.12
+  infer_launch: "roslaunch two_stage_infer two_stage.launch"
+  infer_result_topic: /target_info
+  infer_timeout: 10.0
+  completion_after_each_waypoint:
+    - "到达目标点上方"
+    - "下降到 0.12m"
+    - "启动 two_stage_infer/two_stage.launch"
+    - "收到 /target_info 或等待 10 秒超时"
+    - "回到 1.60m 后前往下一个目标点"
+
+waypoints:
+  - id: image_top_left
+    point: [3.6, -1.6, 1.60]
+    action: classify_image_target
+    hold_time: 0.0
+    yaw: null
+
+  - id: image_top_right
+    point: [1.8, -1.6, 1.60]
+    action: classify_image_target
+    hold_time: 0.0
+    yaw: null
+
+  - id: image_bottom_right
+    point: [1.8, 1.6, 1.60]
+    action: classify_image_target
+    hold_time: 0.0
+    yaw: null
+
+  - id: image_bottom_left
+    point: [3.6, 1.6, 1.60]
+    action: classify_image_target
+    hold_time: 0.0
+    yaw: null
+
+completion:
+  type: per_waypoint_descend_infer
+  final_waypoint: image_bottom_left
+  final_hold_time: 0.0
+  perception_required: true
+  infer_timeout: 10.0
+  note: "每个图片靶点到达后下降到 0.12m，启动 two_stage_infer/two_stage.launch，收到 /target_info 或 10 秒超时后回到 1.60m；若 run.sh 启用 drop_enabled，则在该高度保持至少 2 秒后再投放。最后一个点完成同样流程后任务完成，不再停留 2 秒。"

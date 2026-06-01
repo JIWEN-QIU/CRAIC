@@ -99,6 +99,8 @@ ROSParamLoader::ROSParamLoader(const ros::NodeHandle &nh, ROGMapConfig &cfg, con
     LoadParam(name_space + "/ros_callback/cloud_topic", cfg.cloud_topic, string("/cloud_registered"));
     LoadParam(name_space + "/ros_callback/odom_topic", cfg.odom_topic, string("/lidar_slam/odom"));
     LoadParam(name_space + "/ros_callback/odom_timeout", cfg.odom_timeout, 0.05);
+    LoadParam(name_space + "/ros_callback/override_odom_z_enabled", cfg.override_odom_z_enabled, false);
+    LoadParam(name_space + "/ros_callback/override_odom_z", cfg.override_odom_z, 0.0);
 
     LoadParam(name_space + "/swarm_en", cfg.swarm_en, false);
     if (cfg.swarm_en) {

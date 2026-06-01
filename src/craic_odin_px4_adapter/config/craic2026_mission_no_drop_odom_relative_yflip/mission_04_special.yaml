@@ -1,0 +1,24 @@
+mission_segment: special_target
+coordinate_frame: odom_relative
+publish_frame_expected: odom
+transform_already_applied: true
+
+special_policy:
+  descend_for_drop: true
+  drop_enabled: true
+  drop_z: 0.12
+  cruise_z: 1.60
+
+waypoints:
+  - id: special_target_observe
+    point: [6.0, 1.0, 1.60]
+    action: observe_special_target
+    hold_time: 2.0
+    yaw: null
+
+completion:
+  type: final_waypoint_hold
+  final_waypoint: special_target_observe
+  final_hold_time: 2.0
+  perception_required: false
+  note: "run.sh 启用 drop_enabled 时，到达 special_target_observe 后下降到 0.12m，保持 2 秒后释放第三个磁铁，再回升到 1.60m 继续；不等待特殊靶检测。"

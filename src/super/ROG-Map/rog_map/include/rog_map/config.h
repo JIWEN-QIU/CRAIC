@@ -56,6 +56,8 @@ namespace rog_map {
         bool map_sliding_en{true};
         Vec3f fix_map_origin;
         string odom_topic, cloud_topic;
+        bool override_odom_z_enabled{false};
+        double override_odom_z{0.0};
         /* probability update */
         double raycast_range_min, raycast_range_max;
         double sqr_raycast_range_min, sqr_raycast_range_max;

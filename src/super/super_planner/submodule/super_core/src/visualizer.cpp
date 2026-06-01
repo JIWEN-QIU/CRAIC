@@ -10,17 +10,17 @@ namespace super_planner {
     void Visualizer::Init(const ros::NodeHandle &nh) {
         nh_ = nh;
 
-        backup_sfc_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/backup_sfc", 100);
-        goal_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/goal", 100);
-        backup_traj_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/backup_traj", 100);
-        exp_traj_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/exp_traj", 100);
-        commit_traj_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/commit_traj", 100);
-        receding_traj_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/receding_traj", 100);
-        exp_sfcs_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/exp_sfcs", 100);
-        point_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/points", 100);
-        fov_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/fov", 100);
-        astar_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/astar", 100);
-        guide_path_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/sfc_guide_path", 100);
+        backup_sfc_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/backup_sfc", 100, true);
+        goal_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/goal", 100, true);
+        backup_traj_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/backup_traj", 100, true);
+        exp_traj_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/exp_traj", 100, true);
+        commit_traj_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/commit_traj", 100, true);
+        receding_traj_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/receding_traj", 100, true);
+        exp_sfcs_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/exp_sfcs", 100, true);
+        point_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/points", 100, true);
+        fov_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/fov", 100, true);
+        astar_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/astar", 100, true);
+        guide_path_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/sfc_guide_path", 100, true);
 
         exp_traj_data_pub_ = nh_.advertise<quadrotor_msgs::PolynomialTrajectory>("visualization/exp_traj_data",
                                                                                  100);
@@ -29,10 +29,10 @@ namespace super_planner {
                                                                                   100);
         back_sfc_data_pub_ = nh_.advertise<quadrotor_msgs::PolyhedronVector>("visualization/back_sfc_data", 100);
 
-        receding_sfc_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/receding_sfc", 100);
+        receding_sfc_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/receding_sfc", 100, true);
         backup_traj_star_point_ = nh_.advertise<visualization_msgs::MarkerArray>(
-                "visualization/backup_traj_start_pt", 100);
-        yaw_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/yaw_traj", 100);
+                "visualization/backup_traj_start_pt", 100, true);
+        yaw_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization/yaw_traj", 100, true);
     }
 
     void Visualizer::Init(const ros::NodeHandle &nh, const PlannerConfig cfg) {

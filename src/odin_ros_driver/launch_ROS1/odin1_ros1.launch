@@ -32,8 +32,9 @@
         <rosparam command="load" file="$(find odin_ros_driver)/config/control_command.yaml"/>
     </node>
     
-    <!-- Launch RViz with configuration.
-         Disabled for flight runs; start RViz manually when visualization is needed. -->
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rviz_config)" output="screen"/>
-
+    <!-- Launch RViz with configuration. -->
+         <!-- Disabled for flight runs; start RViz manually when visualization is needed.  -->
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rviz_config)" output="screen"/> -->
+   
+    
 </launch>

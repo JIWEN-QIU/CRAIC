@@ -222,9 +222,10 @@ void ROGMap::updateRobotState(const Pose &pose) {
 
 
 void ROGMap::odomCallback(const nav_msgs::OdometryConstPtr &odom_msg) {
+    const double odom_z = cfg_.override_odom_z_enabled ? cfg_.override_odom_z : odom_msg->pose.pose.position.z;
     updateRobotState(std::make_pair(
             Vec3f(odom_msg->pose.pose.position.x, odom_msg->pose.pose.position.y,
-                  odom_msg->pose.pose.position.z),
+                  odom_z),
             Quaterniond(odom_msg->pose.pose.orientation.w, odom_msg->pose.pose.orientation.x,
                         odom_msg->pose.pose.orientation.y, odom_msg->pose.pose.orientation.z)));
 
@@ -236,7 +237,7 @@ void ROGMap::odomCallback(const nav_msgs::OdometryConstPtr &odom_msg) {
     transformStamped.child_frame_id = "drone";
     transformStamped.transform.translation.x = odom_msg->pose.pose.position.x;
     transformStamped.transform.translation.y = odom_msg->pose.pose.position.y;
-    transformStamped.transform.translation.z = odom_msg->pose.pose.position.z;
+    transformStamped.transform.translation.z = odom_z;
     transformStamped.transform.rotation.x = odom_msg->pose.pose.orientation.x;
     transformStamped.transform.rotation.y = odom_msg->pose.pose.orientation.y;
     transformStamped.transform.rotation.z = odom_msg->pose.pose.orientation.z;
@@ -686,5 +687,4 @@ void ROGMap::vizCallback(const ros::TimerEvent &event) {
 
 
 }
-
 

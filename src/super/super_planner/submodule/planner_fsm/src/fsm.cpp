@@ -8,8 +8,12 @@ namespace planner_fsm {
 
     void FSM::setGoal(const Vec3f &goal) {
         Vec3f click_point = goal;
+        planner_ptr_->getRobotState(robot_state_);
+        const bool odom_ready = robot_state_.rcv;
         if (cfg_.click_height > -5) {
             click_point.z() = cfg_.click_height;
+        } else if (odom_ready) {
+            click_point.z() = robot_state_.p.z();
         }
         if (cfg_.swarm_en) {
             if (!been_selected_) {
@@ -31,6 +35,12 @@ namespace planner_fsm {
         }
 
         planner_ptr_->shiftPointToNearestNoneOcc(click_point, gi_.goal_p, true);
+        ROS_INFO_STREAM(" -- [FSM DEBUG] setGoal raw=" << goal.transpose()
+                        << " final_click=" << click_point.transpose()
+                        << " shifted_goal=" << gi_.goal_p.transpose()
+                        << " odom_ready=" << odom_ready
+                        << " robot_p=" << robot_state_.p.transpose()
+                        << " click_height=" << cfg_.click_height);
         if ((robot_state_.p - gi_.goal_p).norm() <
             0.1) {
 //                print(fg(color::gray), " -- [Rviz] Too close to goal, skip this target.\n");
@@ -285,6 +295,20 @@ namespace planner_fsm {
                     finish_plan = true;
                     return;
                 }
+                {
+                    static ros::Time last_plan_debug_t(0);
+                    if ((ros::Time::now() - last_plan_debug_t).toSec() > 1.0) {
+                        last_plan_debug_t = ros::Time::now();
+                        ROS_INFO_STREAM(" -- [FSM DEBUG] PlanFromRest start_p=" << robot_state_.p.transpose()
+                                        << " start_v=" << robot_state_.v.transpose()
+                                        << " goal_p=" << gi_.goal_p.transpose()
+                                        << " dist=" << (robot_state_.p - gi_.goal_p).norm()
+                                        << " goal_yaw=" << gi_.goal_yaw
+                                        << " odom_age="
+                                        << ros::Time::now().toSec() - robot_state_.rcv_time
+                                        << " new_goal=" << gi_.new_goal);
+                    }
+                }
                 int retcode = planner_ptr_->PlanFromRest(gi_.goal_p, gi_.goal_yaw, gi_.new_goal);
                 if (retcode == SUCCESS || retcode == FINISH) {
                     gi_.new_goal = false;
@@ -341,14 +365,20 @@ namespace planner_fsm {
 
     void FSM::GoalCallback(const geometry_msgs::PoseStampedConstPtr &msg) {
         current_goal = *msg;
-        current_goal_pub_.publish(msg);
 
         Vec3f click_point(msg->pose.position.x,
                           msg->pose.position.y,
                           msg->pose.position.z);
-        // if (cfg_.click_height > -5) {
-        //     click_point.z() = cfg_.click_height;
-        // }
+        const Vec3f raw_click_point = click_point;
+        planner_ptr_->getRobotState(robot_state_);
+        const bool odom_ready = robot_state_.rcv;
+        if (cfg_.click_height > -5) {
+            click_point.z() = cfg_.click_height;
+        } else if (odom_ready) {
+            click_point.z() = robot_state_.p.z();
+        }
+        current_goal.pose.position.z = click_point.z();
+        current_goal_pub_.publish(current_goal);
         if (cfg_.swarm_en) {
             if (!been_selected_) {
                 cout << RED << "Drone <" << cfg_.drone_id << "> is not selected, continue.";
@@ -368,6 +398,14 @@ namespace planner_fsm {
         q.z() = msg->pose.orientation.z;
 
         planner_ptr_->shiftPointToNearestNoneOcc(click_point, gi_.goal_p, true);
+        ROS_INFO_STREAM(" -- [FSM DEBUG] RViz goal raw=" << raw_click_point.transpose()
+                        << " final_click=" << click_point.transpose()
+                        << " shifted_goal=" << gi_.goal_p.transpose()
+                        << " odom_ready=" << odom_ready
+                        << " robot_p=" << robot_state_.p.transpose()
+                        << " robot_v=" << robot_state_.v.transpose()
+                        << " odom_age=" << ros::Time::now().toSec() - robot_state_.rcv_time
+                        << " click_height=" << cfg_.click_height);
         if ((robot_state_.p - gi_.goal_p).norm() <
             0.1) {
 //                print(fg(color::gray), " -- [Rviz] Too close to goal, skip this target.\n");

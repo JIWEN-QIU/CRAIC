@@ -1,5 +1,8 @@
 # fsm_node:
 fsm:
+  click_goal_topic: "/move_base_simple/goal"
+  # > -5 fixes click goal height; <= -5 uses the current odom z.
+  click_height: 1.6
   # click_goal_topic: "/planning/next_viewpoint"
   replan_rate: 10.0
   click_yaw_en: true
@@ -10,15 +13,19 @@ fsm:
   mpc_cmd_topic: "/planning_cmd/poly_traj"
 
 super_planner:
-  frontend_in_known_free: true
+  # For real exploration/avoidance, allow the frontend to search through unknown
+  # space; occupied cells from the live point cloud still block the path.
+  frontend_in_known_free: false
   goal_yaw_en: true
   corridor_bound_dis: 0.8
   corridor_line_max_length: 0.5
   safe_corridor_line_max_length: 1.0
-  planning_horizon: 8
-  receding_dis: 2
-  # [WARN] the robot r should equal to decaymap resolution[0] * infalate dis.
-  robot_r: 0.2
+  # Real flight should plan a short local segment toward the RViz goal, then
+  # replan as new point cloud arrives.
+  planning_horizon: 3.0
+  receding_dis: 1.0
+  # 60 cm diagonal including prop guards, so radius from center is about 0.30 m.
+  robot_r: 0.30
   yaw_dot_max: 3.0
   # Yaw mode: 1 heading to velocity, 2 heading to goal
   yaw_mode: 1
@@ -76,12 +83,13 @@ astar:
 rog_map:
   resolution: 0.1
   inflation_resolution: 0.1
-  inflation_step: 2
+  # Match the inflated occupancy used by A* with the 0.30 m guarded-quad radius.
+  inflation_step: 3
   block_inf_pt: false
   map_size: [ 50,50,20 ]
-  fix_map_origin: [ 130,80,10 ]
+  fix_map_origin: [ 0,0,0 ]
   # Virtual ceil and ground
-  virtual_ceil_height: 1.3
+  virtual_ceil_height: 3.0
   virtual_ground_height: -999
 
   map_sliding:
@@ -99,7 +107,7 @@ rog_map:
     frame_rate: 0
     # visualization range along the odom [m].
     range: [ 10, 10, 5 ]
-    frame_id: "world"
+    frame_id: "odom"
     pub_unknown_map_en: false
 
   # Intensity filter for input point cloud. If the point intensity is less than this value,

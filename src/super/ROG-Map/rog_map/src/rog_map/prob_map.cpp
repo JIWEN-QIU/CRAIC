@@ -728,6 +728,11 @@ void ProbMap::raycastProcess(const PointCloud &input_cloud, const Vec3f &cur_odo
         double sqr_dis = (p.x() - cur_odom.x()) * (p.x() - cur_odom.x()) +
                          (p.y() - cur_odom.y()) * (p.y() - cur_odom.y()) +
                          (p.z() - cur_odom.z()) * (p.z() - cur_odom.z());
+        // Ignore returns inside the blind/self-filter radius. Without this, close
+        // body/table/prop-guard points can mark the robot's own start cell as occupied.
+        if (sqr_dis < cfg_.sqr_raycast_range_min) {
+            continue;
+        }
         constexpr int max_num = 250000;
         if (cfg_.block_inf_pt && sqr_dis > max_num) {
             continue;

@@ -6,12 +6,14 @@ fsm:
   click_goal_en: true
   odom_goal_en: false
   #    odom_goal_topic: "/odom_goal"
-  click_goal_topic: "/goal"
+  # RViz 2D Nav Goal publishes geometry_msgs/PoseStamped here.
+  click_goal_topic: "/move_base_simple/goal"
   #    click_goal_topic: "/planning/click_goal"
   path_goal_topic: "/planning/path_goal"
   replan_rate: 15.0
   auto_pilot_speed: 3.0
   auto_pilot_yaw_speed: 1.0
+  # <= -5 disables fixed click height; RViz 2D goals use the current odom z.
   click_height: -999
   # if use the yaw ange in /goal as the goal yaw direction
   click_yaw_en: true
@@ -25,7 +27,9 @@ fsm:
 
 super_planner:
   print_log: false
-  frontend_in_known_free: true
+  # For real exploration/avoidance, allow the frontend to search through unknown
+  # space; occupied cells from the live point cloud still block the path.
+  frontend_in_known_free: false
   goal_vel_en: false
   goal_yaw_en: true
   visual_process: false
@@ -40,8 +44,8 @@ super_planner:
   replan_forward_dt: 0.3
   planning_horizon: 8
   receding_dis: 1
-  # [WARN] the robot r should equal to decaymap resolution[0] * infalate dis.
-  robot_r: 0.25
+  # 60 cm diagonal including prop guards, so radius from center is about 0.30 m.
+  robot_r: 0.30
   yaw_dot_max: 3.0
   # Yaw mode: 1 heading to velocity, 2 heading to goal
   yaw_mode: 1
@@ -128,7 +132,7 @@ rog_map:
   inflation_step: 1
   block_inf_pt: false
   map_size: [ 50,50,20 ]
-  fix_map_origin: [ 130,80,10 ]
+  fix_map_origin: [ 0,0,0 ]
   # Virtual ceil and ground
   virtual_ceil_height: 999
   virtual_ground_height: -999
@@ -146,8 +150,8 @@ rog_map:
   #  else user should call function [updateMap] to update the map.
   ros_callback:
     enable: true
-    cloud_topic: "/laserMapping/cloud_registered"
-    odom_topic: "/ekf/ekf_odom"
+    cloud_topic: "/odin1/cloud_slam"
+    odom_topic: "/odin1/odometry_highfreq"
     #      odom_topic: "/mavros/local_position/odom"
     odom_timeout: 2.0
 
@@ -159,7 +163,7 @@ rog_map:
     frame_rate: 0
     # visualization range along the odom [m].
     range: [ 10, 10, 5 ]
-    frame_id: "world"
+    frame_id: "odom"
     pub_unknown_map_en: true
 
   # Intensity filter for input point cloud. If the point intensity is less than this value,

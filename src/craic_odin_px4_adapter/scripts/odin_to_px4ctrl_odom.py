@@ -10,6 +10,8 @@ class OdinToPx4ctrlOdom:
         self.output_frame_id = rospy.get_param("~output_frame_id", "odom")
         self.output_child_frame_id = rospy.get_param("~output_child_frame_id", "base_link")
         self.publish_rate = float(rospy.get_param("~publish_rate", 120.0))
+        self.override_z_enabled = bool(rospy.get_param("~override_z_enabled", False))
+        self.override_z = float(rospy.get_param("~override_z", 1.3))
 
         self.latest_odom = None
 
@@ -35,6 +37,11 @@ class OdinToPx4ctrlOdom:
         rospy.loginfo("[odin_to_px4ctrl_odom] input:  %s", self.input_topic)
         rospy.loginfo("[odin_to_px4ctrl_odom] output: %s", self.output_topic)
         rospy.loginfo("[odin_to_px4ctrl_odom] rate:   %.1f Hz", self.publish_rate)
+        rospy.loginfo(
+            "[odin_to_px4ctrl_odom] override_z_enabled=%s override_z=%.3f",
+            self.override_z_enabled,
+            self.override_z,
+        )
 
     def odom_callback(self, msg):
         self.latest_odom = msg
@@ -50,6 +57,9 @@ class OdinToPx4ctrlOdom:
 
         out.pose = self.latest_odom.pose
         out.twist = self.latest_odom.twist
+        if self.override_z_enabled:
+            out.pose.pose.position.z = self.override_z
+            out.twist.twist.linear.z = 0.0
 
         self.pub.publish(out)
 

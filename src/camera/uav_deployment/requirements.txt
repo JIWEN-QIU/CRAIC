@@ -1,0 +1,28 @@
+# Python 依赖 for N150 + ROS Noetic
+# 运行环境: Python 3.8+ (Ubuntu 20.04)
+
+# 核心依赖
+rospy
+sensor_msgs
+cv_bridge
+opencv-contrib-python-headless>=4.5.0
+
+# YOLO 推理引擎
+ultralytics>=8.0.0
+
+# OpenVINO 加速（必需）
+openvino>=2024.0
+openvino-dev>=2024.0
+
+# 数值计算
+numpy>=1.19.0
+
+# 日志与工具
+python-dateutil
+
+# 可选：性能监控
+psutil>=5.0.0
+
+# 可选：用于本地测试
+matplotlib
+Pillow

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="camera_topic" default="/usb_cam/image_raw" />
+  <arg name="enable_usb_cam" default="true" />
+  <arg name="enable_infer" default="true" />
+  <arg name="enable_qr_reader" default="true" />
+  <arg name="enable_target_echo" default="false" />
+  <arg name="show_windows" default="true" />
+  <arg name="show_qr_window" default="true" />
+
+  <!-- USB 摄像头节点 -->
+  <node if="$(arg enable_usb_cam)" name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
+    <param name="video_device" value="/dev/video0" />
+    <param name="image_width" value="640" />
+    <param name="image_height" value="480" />
+    <param name="pixel_format" value="mjpeg" />
+    <param name="framerate" value="15" />
+    <param name="camera_frame_id" value="usb_cam" />
+    <param name="io_method" value="mmap" />
+  </node>
+
+  <!-- 两段式推理节点 -->
+  <node if="$(arg enable_infer)" name="two_stage_infer_node" pkg="two_stage_infer" type="infer_node.py" output="screen">
+    <env name="DISPLAY" value="$(optenv DISPLAY :1001)" />
+    <env name="XAUTHORITY" value="$(optenv XAUTHORITY /home/n150/.Xauthority)" />
+
+    <!-- 模型路径（无人机上的相对/绝对路径） -->
+    <param name="det_model_path" value="/home/n150/CRAIC_ws/src/camera/uav_deployment/models/target_detector.onnx" />
+    <param name="cls_model_path" value="/home/n150/CRAIC_ws/src/camera/uav_deployment/models/cifar100_classifier.onnx" />
+    
+    <!-- 推理参数 -->
+    <param name="conf_threshold" value="0.25" />
+    <param name="class_conf_threshold" value="0.50" />
+    <param name="crop_shrink" value="0.90" />
+    <param name="crop_pad" value="0.02" />
+    <param name="white_threshold" value="0.60" />
+    <param name="enable_center_roi" value="false" />
+    <param name="center_roi_ratio" value="0.40" />
+    <param name="device" value="cpu" />  <!-- 'cpu' 或 '0' (GPU) -->
+    <param name="max_fps" value="3.0" />
+    <param name="show_window" value="$(arg show_windows)" />
+    <param name="window_name" value="two_stage_infer" />
+    <param name="cifar_window_name" value="cifar_crop_result" />
+    <param name="debug_dir" value="/home/n150/CRAIC_ws/src/camera/uav_deployment/debug_two_stage" />
+    
+    <!-- 摄像头话题 -->
+    <param name="camera_topic" value="$(arg camera_topic)" />
+    
+    <!-- 输出话题 -->
+    <remap from="~target_info" to="/target_info" />
+    <remap from="~target_coords" to="/target_coords" />
+    <remap from="~debug_image" to="/debug_image" />
+  </node>
+
+  <!-- 无人机端二维码识别：订阅 usb_cam 图像，不再使用 Windows 摄像头/UDP -->
+  <node if="$(arg enable_qr_reader)"
+        name="uav_qr_reader"
+        pkg="two_stage_infer"
+        type="windows_udp_cam.py"
+        output="screen">
+    <param name="camera_topic" value="$(arg camera_topic)" />
+    <param name="qr_data_topic" value="/qr_data" />
+    <param name="qr_side_topic" value="/qr_landing_side" />
+    <param name="debug_topic" value="/qr_debug_image" />
+    <param name="stable_count" value="3" />
+    <param name="process_rate" value="8.0" />
+    <param name="resize_width" value="640" />
+    <param name="try_preprocess" value="true" />
+    <param name="publish_debug_image" value="true" />
+    <param name="show_window" value="$(arg show_qr_window)" />
+    <param name="window_name" value="uav_qr_reader" />
+    <param name="set_global_param" value="true" />
+  </node>
+
+  <!-- 结果监听（调试用，可选） -->
+  <node if="$(arg enable_target_echo)" name="target_info_echo" pkg="rostopic" type="rostopic" args="echo /target_info" />
+
+</launch>

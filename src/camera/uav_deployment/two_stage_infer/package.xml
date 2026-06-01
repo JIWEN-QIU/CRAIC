@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>two_stage_infer</name>
+  <version>0.1.0</version>
+  <description>Two-stage YOLO inference (detector + classifier) for UAV target recognition</description>
+  <maintainer email="user@example.com">UAV Team</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>rospy</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>python-catkin-pkg</exec_depend>
+
+</package>

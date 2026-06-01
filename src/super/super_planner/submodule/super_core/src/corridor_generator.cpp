@@ -34,6 +34,7 @@ namespace super_planner {
         //	TimeConsuming t___("SearchPolytopeOnPath");
         sfcs.clear();
         if (path.empty()) {
+            ROS_WARN(" -- [SVC DEBUG] SearchPolytopeOnPath got an empty path.");
             return false;
         }
 
@@ -75,11 +76,24 @@ namespace super_planner {
                 cout << RED << " -- [SVC] seed line too long, force return." << RESET << endl;
                 cout << RED << " -- [SVC] seed line too long, force return." << RESET << endl;
                 cout << RED << " -- [SVC] seed line too long, force return." << RESET << endl;
+                ROS_WARN_STREAM(" -- [SVC DEBUG] seed line too long. path_size=" << path.size()
+                                << " first_id=" << first_id
+                                << " second_id=" << second_id
+                                << " max_len=" << seed_line_max_length_
+                                << " line_len=" << (path[first_id] - path[second_id]).norm()
+                                << " p0=" << path[first_id].transpose()
+                                << " p1=" << path[second_id].transpose());
                 //exit(0);
                 return false;
             }
             if (!GeneratePolytopeFromLine(seed_lines.back(), temp_poly)) {
                 cout << YELLOW << " -- [SVC] GeneratePolytopeFromLine failed." << RESET << endl;
+                ROS_WARN_STREAM(" -- [SVC DEBUG] GeneratePolytopeFromLine failed. path_size=" << path.size()
+                                << " first_id=" << first_id
+                                << " second_id=" << second_id
+                                << " line_len=" << (seed_lines.back().first - seed_lines.back().second).norm()
+                                << " p0=" << seed_lines.back().first.transpose()
+                                << " p1=" << seed_lines.back().second.transpose());
                 return false;
             }
 
@@ -91,6 +105,8 @@ namespace super_planner {
                 if (interior_depth < min_overlap_threshold_) {
                     if (!GeneratePolytopeFromPoint(path[first_id], temp_poly_fix_p)) {
                         cout << YELLOW << " -- [SVC] GeneratePolytopeFromPoint failed." << RESET << endl;
+                        ROS_WARN_STREAM(" -- [SVC DEBUG] GeneratePolytopeFromPoint failed. first_id=" << first_id
+                                        << " point=" << path[first_id].transpose());
                         return false;
                     }
                     overlap = sfcs.back().CrossWith(temp_poly_fix_p);
@@ -98,6 +114,10 @@ namespace super_planner {
                     if (interior_depth <= 0.01) {
                         cout << YELLOW <<
                              " -- [SVC] Cannot find continous corridor on path, force return." << RESET << endl;
+                        ROS_WARN_STREAM(" -- [SVC DEBUG] corridor overlap too small after fix point. depth="
+                                        << interior_depth
+                                        << " first_id=" << first_id
+                                        << " second_id=" << second_id);
                         return false;
                     }
                     temp_poly_fix_p.overlap_depth_with_last_one = interior_depth;
@@ -108,6 +128,10 @@ namespace super_planner {
                     if (interior_depth <= 0.01) {
                         cout << YELLOW <<
                              " -- [SVC] Cannot find continous corridor on path, force return." << RESET << endl;
+                        ROS_WARN_STREAM(" -- [SVC DEBUG] corridor overlap too small. depth="
+                                        << interior_depth
+                                        << " first_id=" << first_id
+                                        << " second_id=" << second_id);
                         return false;
                     }
                 } else {
@@ -135,10 +159,12 @@ namespace super_planner {
 
         if (cnt_loop >= max_loop) {
             cout << YELLOW << " -- [SVC] Reach max iteration, failed." << RESET << endl;
+            ROS_WARN_STREAM(" -- [SVC DEBUG] SearchPolytopeOnPath reached max_loop. path_size=" << path.size());
             return false;
         }
 
         if (sfcs.empty()) {
+            ROS_WARN_STREAM(" -- [SVC DEBUG] SearchPolytopeOnPath produced empty SFC. path_size=" << path.size());
             return false;
         }
 
@@ -165,6 +191,12 @@ namespace super_planner {
         map_ptr_->boxSearch(box_min, box_max, OCCUPIED, pc);
         box_min.z()+=robot_r_;
         box_max.z()-=robot_r_;
+        ROS_INFO_STREAM(" -- [SVC DEBUG] GeneratePolytopeFromPoint point="
+                        << pt.transpose()
+                        << " box_min=" << box_min.transpose()
+                        << " box_max=" << box_max.transpose()
+                        << " occ_pts=" << pc.size()
+                        << " robot_r=" << robot_r_);
         MatD4f planes;
         Eigen::Vector3d a = pt, b = pt;
         Eigen::Matrix<double, 6, 4> bd = Eigen::Matrix<double, 6, 4>::Zero();
@@ -224,6 +256,12 @@ namespace super_planner {
         map_ptr_->boxSearch(box_min, box_max, OCCUPIED, pc);
         box_min.z()+=robot_r_;
         box_max.z()-=robot_r_;
+        ROS_INFO_STREAM(" -- [SVC DEBUG] GeneratePolytopeFromLine line="
+                        << line.first.transpose() << " -> " << line.second.transpose()
+                        << " box_min=" << box_min.transpose()
+                        << " box_max=" << box_max.transpose()
+                        << " occ_pts=" << pc.size()
+                        << " robot_r=" << robot_r_);
         MatD4f planes;
         Eigen::Vector3d a = line.first, b = line.second;
         Eigen::Matrix<double, 6, 4> bd = Eigen::Matrix<double, 6, 4>::Zero();
@@ -266,6 +304,13 @@ namespace super_planner {
             return true;
         } else {
             polytope.Reset();
+            ROS_WARN_STREAM(" -- [SVC DEBUG] CIRI line decomposition failed. line="
+                            << line.first.transpose() << " -> " << line.second.transpose()
+                            << " box_min=" << box_min.transpose()
+                            << " box_max=" << box_max.transpose()
+                            << " occ_pts=" << pc.size()
+                            << " robot_r=" << robot_r_
+                            << " iris_iter_num=" << iris_iter_num_);
             cout << YELLOW << "\t box_min = " << box_min.transpose() << RESET << endl;
             cout << YELLOW << "\t box_max =" << box_max.transpose() << RESET << endl;
             cout << YELLOW << "\t seed line =" << line.first.transpose() << " --> " << line.second.transpose()

@@ -1,0 +1,18 @@
+mission_segment: takeoff_qr
+coordinate_frame: odom_relative
+publish_frame_expected: odom
+transform_already_applied: true
+
+waypoints:
+  - id: qr_observe
+    point: [1.8, 0.0, 1.60]
+    action: read_qr
+    hold_time: 0.0
+    yaw: null
+
+completion:
+  type: final_waypoint_hold
+  final_waypoint: qr_observe
+  final_hold_time: 0.0
+  perception_required: true
+  note: "到达 qr_observe 1.60m 后下降到 runner 参数 qr_scan_z=0.52m 识别二维码；成功后回升到 1.60m 视为任务完成；临时策略：10 秒内无有效二维码结果则原地自动降落。"

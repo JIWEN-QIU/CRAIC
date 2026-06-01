@@ -1,0 +1,40 @@
+mission_segment: landing_approach_only
+coordinate_frame: odom_relative
+publish_frame_expected: odom
+transform_already_applied: true
+
+landing_policy:
+  branch_variable: qr_landing_side
+  execute_final_land: true
+  descend_to_ground: false
+  auto_disarm: false
+  trigger_px4ctrl_land_on_arrival: true
+  final_waypoint_hold_time: 0.0
+  y_flip_note:
+    landing_left_field_map: [1.5, 1.4]
+    landing_left_odom_relative: [0.0, 1.6]
+    landing_right_field_map: [1.5, 4.6]
+    landing_right_odom_relative: [0.0, -1.6]
+
+branches:
+  left:
+    waypoints:
+      - id: landing_left_approach
+        point: [0.0, 1.6, 1.60]
+        action: approach_landing_left
+        hold_time: 0.0
+        yaw: null
+
+  right:
+    waypoints:
+      - id: landing_right_approach
+        point: [0.0, -1.6, 1.60]
+        action: approach_landing_right
+        hold_time: 0.0
+        yaw: null
+
+completion:
+  type: trigger_px4ctrl_land_on_arrival
+  final_hold_time: 0.0
+  perception_required: false
+  note: "根据 qr_landing_side 选择 left/right；到达对应降落点上方后立即发布 px4ctrl LAND 指令；不再停留 2 秒，不自动上锁。"

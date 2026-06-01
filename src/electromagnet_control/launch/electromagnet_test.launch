@@ -1,0 +1,18 @@
+<launch>
+  <arg name="enable_magnet" default="true" />
+  <arg name="test_slot" default="3" />
+
+  <node pkg="electromagnet_control" type="electromagnet_test_node" name="electromagnet_test_node" output="screen">
+    <param name="magnet/enable" value="$(arg enable_magnet)" />
+    <param name="test_slot" value="$(arg test_slot)" />
+    <rosparam param="magnet/actuator_slots">[3, 4, 2, 1]</rosparam>
+    <param name="magnet/actuator_set_index" value="0" />
+    <param name="magnet/hold_value" value="1.0" />
+    <param name="magnet/release_value" value="-1.0" />
+    <param name="magnet/hold_low" value="true" />
+    <param name="magnet/release_resend_period" value="0.05" />
+    <param name="magnet/error_throttle_sec" value="2.0" />
+    <param name="magnet/max_fail_count" value="30" />
+    <param name="magnet/disable_on_fail" value="false" />
+  </node>
+</launch>

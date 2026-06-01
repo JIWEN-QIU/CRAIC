@@ -1,0 +1,122 @@
+<launch>
+    <arg name="mission_dir"
+         default="/home/n150/CRAIC_ws/src/craic_odin_px4_adapter/config/craic2026_mission_no_drop_odom_relative_yflip"/>
+    <arg name="mission_main" default="mission_main.yaml"/>
+    <arg name="dry_run" default="true"/>
+    <arg name="start_paused" default="true"/>
+    <arg name="publish_rate" default="30.0"/>
+    <arg name="output_mode" default="super_goal"/>
+    <arg name="goal_topic" default="/move_base_simple/goal"/>
+    <arg name="check_z_reached" default="false"/>
+    <arg name="qr_landing_side" default="right"/>
+    <arg name="qr_result_topic" default="/qr_landing_side"/>
+    <arg name="qr_payload_topic" default="/qr_data"/>
+    <arg name="qr_wait_timeout" default="10.0"/>
+    <arg name="qr_scan_z" default="0.52"/>
+    <arg name="qr_cruise_z" default="1.6"/>
+    <arg name="max_task_id" default="-1"/>
+    <arg name="max_waypoint_index" default="-1"/>
+    <arg name="start_perception" default="false"/>
+    <arg name="camera_topic" default="/usb_cam/image_raw"/>
+    <arg name="enable_usb_cam" default="true"/>
+    <arg name="show_perception_windows" default="true"/>
+    <arg name="enable_target_echo" default="false"/>
+    <arg name="auto_takeoff" default="true"/>
+    <arg name="auto_takeoff_height" default="1.6"/>
+    <arg name="auto_takeoff_timeout" default="35.0"/>
+    <arg name="takeoff_command_duration" default="1.0"/>
+    <arg name="takeoff_land_topic" default="/px4ctrl/takeoff_land"/>
+    <arg name="auto_land" default="true"/>
+    <arg name="land_command_duration" default="5.0"/>
+    <arg name="scan_infer_enabled" default="true"/>
+    <arg name="scan_task_name" default="scan_image_targets"/>
+    <arg name="pre_scan_launch_task_name" default="orbit_obstacle"/>
+    <arg name="pre_scan_launch_hold_time" default="6.0"/>
+    <arg name="scan_descent_z" default="0.12"/>
+    <arg name="scan_cruise_z" default="1.6"/>
+    <arg name="special_drop_descent_z" default="0.12"/>
+    <arg name="special_drop_cruise_z" default="1.6"/>
+    <arg name="scan_result_timeout" default="10.0"/>
+    <arg name="scan_launch_package" default="two_stage_infer"/>
+    <arg name="scan_launch_file" default="two_stage.launch"/>
+    <arg name="scan_process_prestarted" default="false"/>
+    <arg name="scan_result_topic" default="/target_info"/>
+    <arg name="drop_enabled" default="false"/>
+    <arg name="drop_target_classes" default=""/>
+    <arg name="drop_stable_count" default="5"/>
+    <arg name="drop_wait_before_release" default="2.0"/>
+    <arg name="drop_wait_after_release" default="1.0"/>
+    <arg name="drop_release_service" default="/electromagnet_control/release_next"/>
+    <arg name="magnet_enable" default="true"/>
+    <arg name="magnet_actuator_slots" default="[1, 2, 3]"/>
+    <arg name="magnet_release_sequence_slots" default="[1, 3, 2]"/>
+
+    <include if="$(arg drop_enabled)" file="$(find electromagnet_control)/launch/electromagnet_service.launch">
+        <arg name="enable_magnet" value="$(arg magnet_enable)"/>
+        <arg name="actuator_slots" value="$(arg magnet_actuator_slots)"/>
+        <arg name="release_sequence_slots" value="$(arg magnet_release_sequence_slots)"/>
+    </include>
+
+    <!-- 可选：任务开始时预启动视觉链路。
+         默认关闭；默认时序由 runner 在 mission_02 最后一点启动 two_stage.launch，
+         mission_03 最后一点结束后关闭。
+         - 二维码识别用于 mission_01_takeoff_qr.yaml 的 read_qr
+         - 两段式分类用于 mission_03_scan_targets.yaml 的 classify_image_target
+         - scan_process_prestarted=true 时 runner 后续不会重复 roslaunch 第二套 two_stage.launch -->
+    <include if="$(arg start_perception)" file="$(find two_stage_infer)/launch/two_stage.launch">
+        <arg name="camera_topic" value="$(arg camera_topic)"/>
+        <arg name="enable_usb_cam" value="$(arg enable_usb_cam)"/>
+        <arg name="enable_infer" value="true"/>
+        <arg name="enable_qr_reader" value="true"/>
+        <arg name="enable_target_echo" value="$(arg enable_target_echo)"/>
+        <arg name="show_windows" value="$(arg show_perception_windows)"/>
+    </include>
+
+    <node pkg="craic_odin_px4_adapter"
+          type="craic2026_hold2s_mission_runner.py"
+          name="craic2026_hold2s_mission_runner"
+          output="screen">
+        <param name="mission_dir" value="$(arg mission_dir)"/>
+        <param name="mission_main" value="$(arg mission_main)"/>
+        <param name="dry_run" value="$(arg dry_run)"/>
+        <param name="start_paused" value="$(arg start_paused)"/>
+        <param name="publish_rate" value="$(arg publish_rate)"/>
+        <param name="output_mode" value="$(arg output_mode)"/>
+        <param name="goal_topic" value="$(arg goal_topic)"/>
+        <param name="check_z_reached" value="$(arg check_z_reached)"/>
+        <param name="qr_landing_side" value="$(arg qr_landing_side)"/>
+        <param name="qr_result_topic" value="$(arg qr_result_topic)"/>
+        <param name="qr_payload_topic" value="$(arg qr_payload_topic)"/>
+        <param name="qr_wait_timeout" value="$(arg qr_wait_timeout)"/>
+        <param name="qr_scan_z" value="$(arg qr_scan_z)"/>
+        <param name="qr_cruise_z" value="$(arg qr_cruise_z)"/>
+        <param name="max_task_id" value="$(arg max_task_id)"/>
+        <param name="max_waypoint_index" value="$(arg max_waypoint_index)"/>
+        <param name="auto_takeoff" value="$(arg auto_takeoff)"/>
+        <param name="auto_takeoff_height" value="$(arg auto_takeoff_height)"/>
+        <param name="auto_takeoff_timeout" value="$(arg auto_takeoff_timeout)"/>
+        <param name="takeoff_command_duration" value="$(arg takeoff_command_duration)"/>
+        <param name="takeoff_land_topic" value="$(arg takeoff_land_topic)"/>
+        <param name="auto_land" value="$(arg auto_land)"/>
+        <param name="land_command_duration" value="$(arg land_command_duration)"/>
+        <param name="scan_infer_enabled" value="$(arg scan_infer_enabled)"/>
+        <param name="scan_task_name" value="$(arg scan_task_name)"/>
+        <param name="pre_scan_launch_task_name" value="$(arg pre_scan_launch_task_name)"/>
+        <param name="pre_scan_launch_hold_time" value="$(arg pre_scan_launch_hold_time)"/>
+        <param name="scan_descent_z" value="$(arg scan_descent_z)"/>
+        <param name="scan_cruise_z" value="$(arg scan_cruise_z)"/>
+        <param name="special_drop_descent_z" value="$(arg special_drop_descent_z)"/>
+        <param name="special_drop_cruise_z" value="$(arg special_drop_cruise_z)"/>
+        <param name="scan_result_timeout" value="$(arg scan_result_timeout)"/>
+        <param name="scan_launch_package" value="$(arg scan_launch_package)"/>
+        <param name="scan_launch_file" value="$(arg scan_launch_file)"/>
+        <param name="scan_process_prestarted" value="$(arg scan_process_prestarted)"/>
+        <param name="scan_result_topic" value="$(arg scan_result_topic)"/>
+        <param name="drop_enabled" value="$(arg drop_enabled)"/>
+        <param name="drop_target_classes" value="$(arg drop_target_classes)"/>
+        <param name="drop_stable_count" value="$(arg drop_stable_count)"/>
+        <param name="drop_wait_before_release" value="$(arg drop_wait_before_release)"/>
+        <param name="drop_wait_after_release" value="$(arg drop_wait_after_release)"/>
+        <param name="drop_release_service" value="$(arg drop_release_service)"/>
+    </node>
+</launch>

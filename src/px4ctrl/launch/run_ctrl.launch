@@ -1,0 +1,11 @@
+<launch>
+
+	<node pkg="px4ctrl" type="px4ctrl_node" name="px4ctrl" output="screen">
+		<remap from="~odom" to="/odin/odom_for_px4ctrl" />
+
+		<remap from="~cmd" to="/setpoints_cmd" />
+
+        <rosparam command="load" file="$(find px4ctrl)/config/ctrl_param_fpv.yaml" />
+	</node>
+ 
+</launch>
