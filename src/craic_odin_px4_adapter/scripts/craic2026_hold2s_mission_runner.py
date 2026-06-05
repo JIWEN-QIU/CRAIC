@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import copy
 import json
 import math
 import os
@@ -6,6 +7,7 @@ import signal
 import subprocess
 from pathlib import Path
 
+import rosgraph
 import rospy
 import yaml
 from geometry_msgs.msg import PointStamped, PoseStamped, Quaternion
@@ -59,9 +61,12 @@ class Craic2026Hold2sMissionRunner:
         self.scan_detect_z = float(
             rospy.get_param("~scan_detect_z", rospy.get_param("~scan_descent_z", 0.42))
         )
-        self.scan_drop_z = float(rospy.get_param("~scan_drop_z", 0.14))
+        self.scan_drop_z = float(rospy.get_param("~scan_drop_z", 0.09))
         self.scan_descent_z = self.scan_detect_z
         self.scan_cruise_z = float(rospy.get_param("~scan_cruise_z", 1.35))
+        self.orbit_laps = int(rospy.get_param("~orbit_laps", 1))
+        if self.orbit_laps < 1:
+            raise ValueError("orbit_laps must be >= 1")
         self.scan_result_timeout = float(rospy.get_param("~scan_result_timeout", 10.0))
         self.scan_launch_package = rospy.get_param("~scan_launch_package", "two_stage_infer")
         self.scan_launch_file = rospy.get_param("~scan_launch_file", "two_stage.launch")
@@ -132,6 +137,9 @@ class Craic2026Hold2sMissionRunner:
         )
         self.ring_detector_camera_xyz_offset_base = rospy.get_param(
             "~ring_detector_camera_xyz_offset_base", "[0.0, 0.04, 0.0]"
+        )
+        self.ring_detector_show_window = bool(
+            rospy.get_param("~ring_detector_show_window", True)
         )
         self.ring_task_name = rospy.get_param("~ring_task_name", "ring_placeholder_search")
         self.ring_center_topic = rospy.get_param(
@@ -215,6 +223,8 @@ class Craic2026Hold2sMissionRunner:
         self.special_ring_turn_start = None
         self.ring_detector_process = None
         self.ring_detector_started = False
+        self.ring_detector_start_time = None
+        self.ring_detector_health_last_check = None
         self.ring_phase = None
         self.ring_targets = None
         self.ring_wait_point = None
@@ -384,6 +394,7 @@ class Craic2026Hold2sMissionRunner:
 
             task_cfg = self.load_yaml(self.mission_dir / item["file"])
             waypoints = self.extract_waypoints(task_cfg, item)
+            waypoints = self.expand_orbit_waypoints(task_cfg, waypoints)
             if self.max_waypoint_index >= 0:
                 waypoints = waypoints[: self.max_waypoint_index + 1]
             if not waypoints:
@@ -410,6 +421,37 @@ class Craic2026Hold2sMissionRunner:
                 raise ValueError("Missing landing branch: %s" % self.qr_landing_side)
             return branch.get("waypoints", [])
         return task_cfg.get("waypoints", [])
+
+    def expand_orbit_waypoints(self, task_cfg, waypoints):
+        if task_cfg.get("mission_segment") != "orbit_obstacle" or self.orbit_laps <= 1:
+            return waypoints
+        if len(waypoints) < 5:
+            rospy.logwarn(
+                "[craic2026_runner] orbit_laps=%d ignored: orbit task has only %d waypoints.",
+                self.orbit_laps,
+                len(waypoints),
+            )
+            return waypoints
+
+        entry = copy.deepcopy(waypoints[0])
+        cycle = waypoints[1:]
+        expanded = [entry]
+        for lap_idx in range(1, self.orbit_laps + 1):
+            for cycle_idx, wp in enumerate(cycle):
+                lap_wp = copy.deepcopy(wp)
+                base_id = lap_wp.get("id", "orbit_waypoint")
+                lap_wp["id"] = "%s_lap%d" % (base_id, lap_idx)
+                if lap_idx < self.orbit_laps and cycle_idx == len(cycle) - 1:
+                    lap_wp["hold_time"] = 0.0
+                expanded.append(lap_wp)
+
+        rospy.logwarn(
+            "[craic2026_runner] orbit_laps=%d expanded orbit waypoints: %d -> %d.",
+            self.orbit_laps,
+            len(waypoints),
+            len(expanded),
+        )
+        return expanded
 
     def validate_mission(self):
         if self.output_mode not in ("super_goal", "direct_setpoint"):
@@ -662,6 +704,7 @@ class Craic2026Hold2sMissionRunner:
                 task_cfg,
                 {"branch_by": "qr_landing_side"},
             )
+            task["waypoints"] = self.expand_orbit_waypoints(task_cfg, task["waypoints"])
             rospy.logwarn(
                 "[craic2026_runner] refreshed landing branch to %s: %s",
                 self.qr_landing_side,
@@ -1240,6 +1283,9 @@ class Craic2026Hold2sMissionRunner:
 
     def cleanup_ring_detector_process(self):
         if self.ring_detector_process is None:
+            self.ring_detector_started = False
+            self.ring_detector_start_time = None
+            self.ring_detector_health_last_check = None
             return
         if self.ring_detector_process.poll() is None:
             try:
@@ -1251,6 +1297,9 @@ class Craic2026Hold2sMissionRunner:
                 except Exception:
                     pass
         self.ring_detector_process = None
+        self.ring_detector_started = False
+        self.ring_detector_start_time = None
+        self.ring_detector_health_last_check = None
 
     def cleanup_special_detector_process(self):
         if self.special_detector_process is None:
@@ -1310,13 +1359,28 @@ class Craic2026Hold2sMissionRunner:
 
     def start_ring_detector_process(self):
         if self.ring_detector_started:
-            return True
+            if self.ring_detector_process is not None and self.ring_detector_process.poll() is None:
+                return True
+            exit_code = (
+                self.ring_detector_process.poll()
+                if self.ring_detector_process is not None
+                else None
+            )
+            rospy.logwarn(
+                "[craic2026_runner] ring detector marked started but process is not running (exit=%s); restarting.",
+                exit_code,
+            )
+            self.ring_detector_process = None
+            self.ring_detector_started = False
         if self.dry_run:
             rospy.logwarn("[craic2026_runner] DRY RUN ring detector: skip roslaunch.")
             self.ring_detector_started = True
+            self.ring_detector_start_time = rospy.Time.now()
             return True
         if self.ring_detector_process is not None and self.ring_detector_process.poll() is None:
             self.ring_detector_started = True
+            if self.ring_detector_start_time is None:
+                self.ring_detector_start_time = rospy.Time.now()
             rospy.loginfo("[craic2026_runner] ring detector already running.")
             return True
         if self.ring_detector_process is not None:
@@ -1333,11 +1397,54 @@ class Craic2026Hold2sMissionRunner:
             "ring_size_shape_source:=%s" % self.ring_detector_size_shape_source,
             "ring_size_alpha_policy:=%s" % self.ring_detector_size_alpha_policy,
             "camera_xyz_offset_base:=%s" % self.ring_detector_camera_xyz_offset_base,
+            "show_debug_window:=%s" % str(self.ring_detector_show_window).lower(),
         ]
         rospy.logwarn("[craic2026_runner] starting ring detector: %s", " ".join(cmd))
         self.ring_detector_process = subprocess.Popen(cmd, preexec_fn=os.setsid)
         self.ring_detector_started = True
+        self.ring_detector_start_time = rospy.Time.now()
+        self.ring_detector_health_last_check = None
         return True
+
+    def is_ros_node_registered(self, node_name):
+        try:
+            rosgraph.Master(rospy.get_name()).lookupNode(node_name)
+            return True
+        except Exception:
+            return False
+
+    def ensure_ring_detector_process_running(self, now):
+        if not self.start_ring_detector_process():
+            return False
+        if self.dry_run:
+            return True
+        if (
+            self.ring_detector_process is None
+            or self.ring_detector_process.poll() is not None
+        ):
+            return self.start_ring_detector_process()
+        if self.ring_detector_start_time is None:
+            self.ring_detector_start_time = now
+
+        since_start = (now - self.ring_detector_start_time).to_sec()
+        if since_start < 8.0:
+            return True
+        if (
+            self.ring_detector_health_last_check is not None
+            and (now - self.ring_detector_health_last_check).to_sec() < 1.0
+        ):
+            return True
+        self.ring_detector_health_last_check = now
+
+        if self.is_ros_node_registered("/ring_detector"):
+            return True
+
+        rospy.logwarn(
+            "[craic2026_runner] ring detector launch is alive but /ring_detector is not registered after %.1fs; restarting.",
+            since_start,
+        )
+        self.cleanup_ring_detector_process()
+        return self.start_ring_detector_process()
 
     def yaw_error(self, target_yaw):
         return math.atan2(math.sin(target_yaw - self.last_yaw), math.cos(target_yaw - self.last_yaw))
@@ -1864,6 +1971,7 @@ class Craic2026Hold2sMissionRunner:
 
         if self.special_drop_phase == "RING_WAIT":
             self.publish_direct_point(cruise_point, self.ring_detector_turn_yaw)
+            self.ensure_ring_detector_process_running(now)
             elapsed = (now - self.special_ring_wait_start).to_sec() if self.special_ring_wait_start else 0.0
             center = self.fresh_ring_center(now)
             if center is not None:

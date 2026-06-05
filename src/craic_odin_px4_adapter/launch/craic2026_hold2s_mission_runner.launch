@@ -39,8 +39,9 @@
     <arg name="scan_task_name" default="scan_image_targets"/>
     <arg name="pre_scan_launch_task_name" default="orbit_obstacle"/>
     <arg name="pre_scan_launch_hold_time" default="6.0"/>
+    <arg name="orbit_laps" default="1"/>
     <arg name="scan_detect_z" default="0.42"/>
-    <arg name="scan_drop_z" default="0.14"/>
+    <arg name="scan_drop_z" default="0.09"/>
     <arg name="scan_cruise_z" default="1.35"/>
     <arg name="special_drop_descent_z" default="0.09"/>
     <arg name="special_drop_cruise_z" default="1.35"/>
@@ -65,6 +66,7 @@
     <arg name="ring_detector_size_shape_source" default="min_area_rect"/>
     <arg name="ring_detector_size_alpha_policy" default="max"/>
     <arg name="ring_detector_camera_xyz_offset_base" default="[0.0, 0.04, 0.0]"/>
+    <arg name="ring_detector_show_window" default="true"/>
     <arg name="ring_task_name" default="ring_placeholder_search"/>
     <arg name="ring_center_topic" default="/ring_detector/center_odom_latched"/>
     <arg name="ring_center_max_age" default="3.0"/>
@@ -147,6 +149,7 @@
         <param name="scan_task_name" value="$(arg scan_task_name)"/>
         <param name="pre_scan_launch_task_name" value="$(arg pre_scan_launch_task_name)"/>
         <param name="pre_scan_launch_hold_time" value="$(arg pre_scan_launch_hold_time)"/>
+        <param name="orbit_laps" value="$(arg orbit_laps)"/>
         <param name="scan_detect_z" value="$(arg scan_detect_z)"/>
         <param name="scan_drop_z" value="$(arg scan_drop_z)"/>
         <param name="scan_cruise_z" value="$(arg scan_cruise_z)"/>
@@ -173,6 +176,7 @@
         <param name="ring_detector_size_shape_source" value="$(arg ring_detector_size_shape_source)"/>
         <param name="ring_detector_size_alpha_policy" value="$(arg ring_detector_size_alpha_policy)"/>
         <param name="ring_detector_camera_xyz_offset_base" value="$(arg ring_detector_camera_xyz_offset_base)"/>
+        <param name="ring_detector_show_window" value="$(arg ring_detector_show_window)"/>
         <param name="ring_task_name" value="$(arg ring_task_name)"/>
         <param name="ring_center_topic" value="$(arg ring_center_topic)"/>
         <param name="ring_center_max_age" value="$(arg ring_center_max_age)"/>

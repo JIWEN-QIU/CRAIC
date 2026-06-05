@@ -16,6 +16,7 @@
   <arg name="device" default="cpu"/>
   <arg name="max_fps" default="10.0"/>
   <arg name="publish_debug_image" default="true"/>
+  <arg name="show_debug_window" default="true"/>
   <arg name="publish_center_odom" default="true"/>
   <arg name="center_estimation_mode" default="known_height"/>
   <arg name="center_pixel_mode" default="mask_centroid"/>
@@ -97,4 +98,11 @@
     <param name="max_cloud_points" value="$(arg max_cloud_points)"/>
     <param name="plane_inlier_threshold" value="$(arg plane_inlier_threshold)"/>
   </node>
+
+  <node if="$(arg show_debug_window)"
+        name="ring_detector_rqt_image_view"
+        pkg="rqt_image_view"
+        type="rqt_image_view"
+        args="/ring_detector/debug_image"
+        output="screen"/>
 </launch>

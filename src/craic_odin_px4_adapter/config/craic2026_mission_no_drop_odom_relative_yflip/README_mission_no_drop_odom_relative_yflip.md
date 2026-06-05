@@ -58,10 +58,9 @@ With the current SUPER config, `fsm/click_height` is fixed to `1.35`, so normal 
 - Descend in place to 0.42 m using direct `/setpoints_cmd` publishing from the mission runner.
 - Start `roslaunch uav_4class_infer uav_4class.launch`.
 - Wait up to 10 s for `/target_info` to match the required drop target class.
-- If the result matches, descend to 0.14 m and hold at the drop height for at least 2 s before releasing a magnet.
+- If the result matches, descend to 0.09 m and hold at the drop height for at least 2 s before releasing a magnet.
 - If no target class matches in 10 s, climb back to 1.35 m and continue to the next image target.
-- Fallback drops also follow the 0.42 m recognition -> 0.14 m release route: drop at the third point when total releases are 0, and at the fourth point when total releases are 1.
-- Once mission 3 reaches two total releases, it completes early after climbing back to 1.35 m and enters mission 4.
+- Fallback drops also follow the 0.42 m recognition -> 0.09 m release route: drop at the third point when total releases are 0, and at the fourth point when total releases are 1.
 - Stop the launched inference process.
 - Climb back to 1.35 m using direct `/setpoints_cmd`.
 - Continue to the next image target.
