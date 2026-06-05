@@ -11,6 +11,7 @@ add_definitions(-DROOT_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
 find_package(catkin REQUIRED COMPONENTS
         roscpp
         std_msgs
+        std_srvs
         pcl_ros
         geometry_msgs
         nav_msgs
@@ -29,7 +30,7 @@ find_package(Boost 1.70.0 COMPONENTS system filesystem serialization REQUIRED)
 catkin_package(
         INCLUDE_DIRS
         LIBRARIES super_planner
-        CATKIN_DEPENDS roscpp rospy std_msgs
+        CATKIN_DEPENDS roscpp rospy std_msgs std_srvs
         #  DEPENDS system_lib
 )
 

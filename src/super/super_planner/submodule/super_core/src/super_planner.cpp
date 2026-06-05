@@ -153,10 +153,14 @@ namespace super_planner {
                                           -1.0,
                                           -35.0,
                                           35.0));
+        RefreshFineInfNeighbors();
+    }
+
+    void SuperPlanner::RefreshFineInfNeighbors() {
         vec_Vec3i neighbor_list;
         const int neighbor_step = floor(cfg_.robot_r / cfg_.resolution);
         for (int i = -neighbor_step; i <= neighbor_step; i++) {
-            for (int j = -neighbor_step; j <= neighbor_num; j++) {
+            for (int j = -neighbor_step; j <= neighbor_step; j++) {
                 for (int k = -neighbor_step; k <= neighbor_step; k++) {
                     if (i == 0 && j == 0 && k == 0) {
                         continue;
@@ -169,6 +173,18 @@ namespace super_planner {
             }
         }
         astar_ptr_->setFineInfNeighbors(neighbor_list);
+    }
+
+    void SuperPlanner::SetRobotRadius(const double robot_r) {
+        std::lock_guard<std::mutex> guard(replan_lock_);
+        cfg_.robot_r = robot_r;
+        if (cg_ptr_) {
+            cg_ptr_->SetRobotRadius(robot_r);
+        }
+        if (astar_ptr_) {
+            RefreshFineInfNeighbors();
+        }
+        ROS_WARN("[SuperPlanner] robot_r set to %.3f m", cfg_.robot_r);
     }
 
     RET_CODE

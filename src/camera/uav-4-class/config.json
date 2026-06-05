@@ -1,0 +1,12 @@
+{
+  "detector": "models/target_detector.onnx",
+  "classifier": "models/target_4class_classifier.onnx",
+  "classes": ["apple", "motorcycle", "sunflower", "telephone"],
+  "det_imgsz": 640,
+  "cls_imgsz": 128,
+  "det_conf": 0.25,
+  "det_iou": 0.45,
+  "cls_conf": 0.35,
+  "pad_ratio": 0.08,
+  "providers": ["CPUExecutionProvider"]
+}

@@ -9,21 +9,27 @@ namespace super_planner {
                                          const double robot_r, const int box_search_skip_num, const int iris_iter_num) {
         map_ptr_ = map_ptr;
         ciri_.reset(new CIRI(nh));
-        ciri_->setupParams(robot_r, iris_iter_num);
         bound_dis_ = bound_dis;
         seed_line_max_length_ = seed_line_max_dis;
         min_overlap_threshold_ = min_overlap_threshold;
-        robot_r_ = robot_r;
         box_search_skip_num_ = box_search_skip_num;
         iris_iter_num_ = iris_iter_num;
-        virtual_ceil_height_ = virtual_ceil_height - robot_r;
-        virtual_groud_height_ = virtual_groud_height + robot_r;
+        raw_virtual_ceil_height_ = virtual_ceil_height;
+        raw_virtual_groud_height_ = virtual_groud_height;
+        SetRobotRadius(robot_r);
         failed_traj_log.open(DEBUG_FILE_DIR("sfc.csv"), ios::out | ios::trunc);
     }
 
 
     void CorridorGenerator::SetLineNeighborList(const vec_E<Vec3i> &line_seed_neighbor_list) {
         this->line_seed_neighbor_list = line_seed_neighbor_list;
+    }
+
+    void CorridorGenerator::SetRobotRadius(const double robot_r) {
+        robot_r_ = robot_r;
+        ciri_->setupParams(robot_r_, iris_iter_num_);
+        virtual_ceil_height_ = raw_virtual_ceil_height_ - robot_r_;
+        virtual_groud_height_ = raw_virtual_groud_height_ + robot_r_;
     }
 
     bool

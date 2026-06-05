@@ -10,6 +10,7 @@
 #include "quadrotor_msgs/PolynomialTrajectory.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "std_msgs/Float64.h"
+#include "std_srvs/SetBool.h"
 #include <visualization_utils/visualization_utils.h>
 #include <super_core/super_planner.h>
 #include <super_core/config.h>
@@ -82,6 +83,7 @@ namespace planner_fsm {
         ros::Subscriber select_sub_, odom_sub_, goal_sub_, rc_sub_, path_goal_sub_, collision_sub_;
         ros::Publisher cmd_pub, mpc_cmd_pub_, mkr_pub_, current_goal_pub_, current_goalpath_pub_;
         ros::Publisher path_pub_;
+        ros::ServiceServer ring_radius_mode_srv_;
         ros::Timer execution_timer_, replan_timer_, cmd_timer_, current_goal_timer_;
 
         geometry_msgs::PoseStamped current_goal;
@@ -90,6 +92,9 @@ namespace planner_fsm {
 
         // params
         bool started_{false}, plan_from_rest_{false};
+        bool ring_radius_mode_enabled_{false};
+        double default_robot_r_{0.30};
+        double ring_robot_r_{0.25};
 
         struct GoalInfo {
             bool new_goal;
@@ -166,6 +171,9 @@ namespace planner_fsm {
         void PathGoalCallback(const nav_msgs::PathConstPtr &msg);
 
         void PubCurrentGoalCallback(const ros::TimerEvent &event);
+
+        bool SetRingRadiusModeCallback(std_srvs::SetBool::Request &req,
+                                       std_srvs::SetBool::Response &res);
 
     };
 

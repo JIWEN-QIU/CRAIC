@@ -1,0 +1,17 @@
+data: data_source/data.yaml
+model: yolo11n.pt
+project: runs/special_target
+train_name: train
+val_name: val
+predict_name: predict
+
+imgsz: 640
+epochs: 100
+batch: 8
+device: 0
+workers: 0
+patience: 30
+seed: 42
+
+conf: 0.25
+iou: 0.7

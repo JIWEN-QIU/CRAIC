@@ -4,35 +4,39 @@ publish_frame_expected: odom
 transform_already_applied: true
 
 ring_policy:
-  mode: placeholder_search_line
-  field_map_x_range: [6.3, 8.7]
-  odom_relative_x_range: [4.8, 7.2]
-  odom_relative_y: -1.6
-  note: "不是最终穿环轨迹，真实穿环必须接入视觉检测结果后动态生成真实穿环轨迹。"
-  generate_pre_post_ring: false
+  mode: center_locked_only
+  note: "任务五不再使用固定搜索线；等待 /ring_detector/center_odom_latched 后动态生成 approach/center/exit 穿环轨迹。"
+  generate_pre_post_ring: true
 
 waypoints:
-  - id: ring_search_start
-    point: [7.2, -1.6, 1.60]
+  - id: ring_wait_for_center
+    point: [0.0, 0.0, 1.35]
     action: start_ring_detection
-    hold_time: 0.0
-    yaw: null
-
-  - id: ring_search_mid
-    point: [6.0, -1.6, 1.60]
-    action: detect_ring
-    hold_time: 0.0
-    yaw: null
-
-  - id: ring_search_end
-    point: [4.8, -1.6, 1.60]
-    action: detect_ring
     hold_time: 2.0
     yaw: null
 
+  # 固定搜索线暂时停用：任务五只根据识别出的圆环中心点飞。
+  # - id: ring_search_start
+  #   point: [7.2, -1.6, 1.35]
+  #   action: start_ring_detection
+  #   hold_time: 0.0
+  #   yaw: null
+  #
+  # - id: ring_search_mid
+  #   point: [6.0, -1.6, 1.35]
+  #   action: detect_ring
+  #   hold_time: 0.0
+  #   yaw: null
+  #
+  # - id: ring_search_end
+  #   point: [4.8, -1.6, 1.35]
+  #   action: detect_ring
+  #   hold_time: 2.0
+  #   yaw: null
+
 completion:
-  type: final_waypoint_hold
-  final_waypoint: ring_search_end
+  type: perception_center_traverse
+  final_waypoint: ring_wait_for_center
   final_hold_time: 2.0
-  perception_required: false
-  note: "到达 ring_search_end 并停留 2 秒即完成；不等待圆环检测，placeholder 不代表真实穿环完成。"
+  perception_required: true
+  note: "等待圆环中心锁定并完成 approach/center/exit 后才进入下一任务。"

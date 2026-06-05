@@ -58,6 +58,16 @@ namespace planner_fsm {
         cfg_ = FsmConfig(nh_);
         // 初始化Planner
         planner_ptr_.reset(new SuperPlanner(nh, cfg_.planner_cfg));
+        default_robot_r_ = cfg_.planner_cfg.robot_r;
+        nh_.param("super_planner/default_robot_r", default_robot_r_, default_robot_r_);
+        nh_.param("super_planner/ring_robot_r", ring_robot_r_, 0.25);
+        planner_ptr_->SetRobotRadius(default_robot_r_);
+        ring_radius_mode_srv_ = nh_.advertiseService(
+                "/super_planner/set_ring_radius_mode",
+                &FSM::SetRingRadiusModeCallback,
+                this);
+        ROS_WARN(" -- [FSM] ring radius service ready: default_robot_r=%.3f ring_robot_r=%.3f.",
+                 default_robot_r_, ring_robot_r_);
         cmd_pub = nh_.advertise<quadrotor_msgs::PositionCommand>(cfg_.cmd_topic, 10);
         if (cfg_.mpc_cmd_type == MPC_PVAJ_MODE) {
             mpc_cmd_pub_ = nh_.advertise<quadrotor_msgs::MpcPositionCommand>(cfg_.mpc_cmd_topic, 10);
@@ -129,6 +139,24 @@ namespace planner_fsm {
             }
         }
         write_time_ << endl;
+    }
+
+    bool FSM::SetRingRadiusModeCallback(std_srvs::SetBool::Request &req,
+                                        std_srvs::SetBool::Response &res) {
+        const double target_robot_r = req.data ? ring_robot_r_ : default_robot_r_;
+        if (!planner_ptr_) {
+            res.success = false;
+            res.message = "planner_ptr is not initialized";
+            return true;
+        }
+        planner_ptr_->SetRobotRadius(target_robot_r);
+        ring_radius_mode_enabled_ = req.data;
+        res.success = true;
+        res.message = req.data ? "ring radius mode enabled" : "ring radius mode disabled";
+        ROS_WARN(" -- [FSM] %s: robot_r=%.3f.",
+                 res.message.c_str(),
+                 planner_ptr_->GetRobotRadius());
+        return true;
     }
 
     void FSM::PubCmdCallback(const ros::TimerEvent &event) {

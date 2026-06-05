@@ -28,6 +28,8 @@ namespace super_planner {
         double robot_r_;
         int box_search_skip_num_;
         int iris_iter_num_;
+        double raw_virtual_groud_height_ = 0.0;
+        double raw_virtual_ceil_height_ = 0.0;
         double virtual_groud_height_ = 0.0;
         double virtual_ceil_height_ = 0.0;
         ROGMap::Ptr map_ptr_;
@@ -52,6 +54,8 @@ namespace super_planner {
         ~CorridorGenerator() = default;
 
         void SetLineNeighborList(const vec_E<Vec3i> &line_seed_neighbor_list);
+
+        void SetRobotRadius(const double robot_r);
 
         typedef shared_ptr<CorridorGenerator> Ptr;
 

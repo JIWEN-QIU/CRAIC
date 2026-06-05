@@ -9,37 +9,57 @@
 
     <arg name="start_odom_adapter" default="true"/>
     <arg name="start_px4ctrl" default="true"/>
+    <arg name="start_auto_mission" default="false"/>
+    <arg name="super_node_name" default="fsm_node"/>
 
     <arg name="input_odin_odom_topic" default="/odin1/odometry_highfreq"/>
+    <arg name="override_px4ctrl_odom_z" default="false"/>
+    <arg name="px4ctrl_odom_z" default="1.3"/>
     <arg name="super_odom_topic" default="/odin/odom_for_px4ctrl"/>
     <arg name="super_cloud_topic" default="/odin1/cloud_slam"/>
     <arg name="super_goal_topic" default="/goal"/>
     <arg name="super_cmd_topic" default="/setpoints_cmd"/>
+    <arg name="super_raw_cmd_topic" default="/super/setpoints_cmd_raw"/>
+    <arg name="start_command_relay" default="true"/>
+    <arg name="lock_command_height" default="true"/>
+    <arg name="yaw_follow_velocity" default="true"/>
+    <arg name="yaw_min_speed" default="0.15"/>
+    <arg name="max_yaw_rate" default="1.0"/>
     <arg name="rviz_goal_topic" default="/move_base_simple/goal"/>
     <arg name="rviz_goal_height" default="1.0"/>
-    <arg name="rviz_use_current_height" default="false"/>
+    <arg name="rviz_use_current_height" default="true"/>
 
-    <arg name="max_vel" default="0.5"/>
-    <arg name="max_acc" default="1.0"/>
-    <arg name="frontend_in_known_free" default="false"/>
-    <arg name="virtual_ceil_height" default="3.0"/>
-    <arg name="virtual_ground_height" default="-0.5"/>
-    <arg name="corridor_bound_dis" default="1.2"/>
-    <arg name="corridor_line_max_length" default="1.5"/>
-    <arg name="safe_corridor_line_max_length" default="2.0"/>
-    <arg name="point_filt_num" default="10"/>
-    <arg name="ray_range_max" default="12.0"/>
-    <arg name="local_update_box_x" default="16.0"/>
-    <arg name="local_update_box_y" default="16.0"/>
-    <arg name="local_update_box_z" default="6.0"/>
+    <!-- Defaults below match super_planner/launch/exploration.launch:
+         exp_advanced_params.yaml is loaded first, then exp.yaml wins. -->
+    <arg name="max_vel" default="0.8"/>
+    <arg name="max_acc" default="1.5"/>
+    <arg name="replan_rate" default="10.0"/>
+    <arg name="auto_takeoff_height" default="1.3"/>
+    <arg name="auto_forward_distance" default="3.0"/>
+    <arg name="frontend_in_known_free" default="true"/>
+    <arg name="virtual_ceil_height" default="1.3"/>
+    <arg name="virtual_ground_height" default="-999"/>
+    <arg name="corridor_bound_dis" default="0.8"/>
+    <arg name="corridor_line_max_length" default="0.5"/>
+    <arg name="safe_corridor_line_max_length" default="1.0"/>
+    <arg name="point_filt_num" default="5"/>
+    <arg name="ray_range_max" default="30.0"/>
+    <arg name="local_update_box_x" default="40.0"/>
+    <arg name="local_update_box_y" default="40.0"/>
+    <arg name="local_update_box_z" default="20.0"/>
 
     <include if="$(arg start_odom_adapter)"
              file="$(find craic_odin_px4_adapter)/launch/odin_to_mavros_pose.launch">
         <arg name="input_odom_topic" value="$(arg input_odin_odom_topic)"/>
+        <arg name="override_px4ctrl_odom_z" value="$(arg override_px4ctrl_odom_z)"/>
+        <arg name="px4ctrl_odom_z" value="$(arg px4ctrl_odom_z)"/>
     </include>
 
     <include if="$(arg start_px4ctrl)"
              file="$(find px4ctrl)/launch/run_ctrl.launch"/>
+    <param if="$(arg start_px4ctrl)"
+           name="/px4ctrl/auto_takeoff_land/takeoff_height"
+           value="$(arg auto_takeoff_height)"/>
 
     <node pkg="craic_odin_px4_adapter"
           type="rviz_goal_to_super.py"
@@ -53,9 +73,39 @@
         <param name="output_frame_id" value="odom"/>
     </node>
 
+    <node if="$(arg start_command_relay)"
+          pkg="craic_odin_px4_adapter"
+          type="lock_height_position_cmd.py"
+          name="lock_height_position_cmd"
+          output="screen">
+        <param name="input_topic" value="$(arg super_raw_cmd_topic)"/>
+        <param name="output_topic" value="$(arg super_cmd_topic)"/>
+        <param name="goal_topic" value="$(arg super_goal_topic)"/>
+        <param name="odom_topic" value="$(arg super_odom_topic)"/>
+        <param name="stop_topic" value="/mission/stop_setpoints"/>
+        <param name="enabled" value="$(arg lock_command_height)"/>
+        <param name="zero_vertical_terms" value="true"/>
+        <param name="yaw_follow_velocity" value="$(arg yaw_follow_velocity)"/>
+        <param name="yaw_min_speed" value="$(arg yaw_min_speed)"/>
+        <param name="max_yaw_rate" value="$(arg max_yaw_rate)"/>
+    </node>
+
+    <node if="$(arg start_auto_mission)"
+          pkg="craic_odin_px4_adapter"
+          type="auto_takeoff_forward_land.py"
+          name="auto_takeoff_forward_land"
+          output="screen">
+        <param name="odom_topic" value="$(arg super_odom_topic)"/>
+        <param name="goal_topic" value="$(arg super_goal_topic)"/>
+        <param name="takeoff_land_topic" value="/px4ctrl/takeoff_land"/>
+        <param name="stop_setpoints_topic" value="/mission/stop_setpoints"/>
+        <param name="takeoff_height" value="$(arg auto_takeoff_height)"/>
+        <param name="forward_distance" value="$(arg auto_forward_distance)"/>
+    </node>
+
     <node pkg="super_planner"
           type="fsm_node"
-          name="super_fsm_node"
+          name="$(arg super_node_name)"
           output="screen">
         <rosparam command="load" file="$(find super_planner)/config/exp_advanced_params.yaml"/>
         <rosparam command="load" file="$(find super_planner)/config/exp.yaml"/>
@@ -64,7 +114,8 @@
         <param name="fsm/auto_pilot_en" value="false"/>
         <param name="fsm/path_goal_en" value="false"/>
         <param name="fsm/click_goal_topic" value="$(arg super_goal_topic)"/>
-        <param name="fsm/cmd_topic" value="$(arg super_cmd_topic)"/>
+        <param name="fsm/cmd_topic" value="$(arg super_raw_cmd_topic)"/>
+        <param name="fsm/replan_rate" value="$(arg replan_rate)"/>
 
         <!--
             false: allow planning into unknown space while ROG-Map keeps updating

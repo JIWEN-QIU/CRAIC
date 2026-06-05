@@ -1,0 +1,37 @@
+<launch>
+    <arg name="odom_topic" default="/odin1/odometry_highfreq"/>
+    <arg name="goal_topic" default="/move_base_simple/goal"/>
+    <arg name="center_topic" default="/clicked_point"/>
+    <arg name="obstacle_size" default="0.60"/>
+    <arg name="obstacle_distance" default="2.50"/>
+    <arg name="clearance" default="0.50"/>
+    <arg name="xy_tolerance" default="0.35"/>
+    <arg name="hold_time" default="1.5"/>
+    <arg name="segment_timeout" default="45.0"/>
+    <arg name="republish_period" default="1.0"/>
+    <arg name="use_clicked_center" default="false"/>
+
+    <!-- By default, the obstacle center is inferred obstacle_distance meters
+         ahead of the current vehicle yaw. Set use_clicked_center:=true to click
+         the center in RViz, or pass obstacle_x/y explicitly. -->
+    <arg name="obstacle_x" default=""/>
+    <arg name="obstacle_y" default=""/>
+    <arg name="obstacle_z" default=""/>
+
+    <node pkg="craic_odin_px4_adapter" type="orbit_obstacle_goals.py" name="orbit_obstacle_goals" output="screen">
+        <param name="odom_topic" value="$(arg odom_topic)"/>
+        <param name="goal_topic" value="$(arg goal_topic)"/>
+        <param name="center_topic" value="$(arg center_topic)"/>
+        <param name="obstacle_size" value="$(arg obstacle_size)"/>
+        <param name="obstacle_distance" value="$(arg obstacle_distance)"/>
+        <param name="clearance" value="$(arg clearance)"/>
+        <param name="xy_tolerance" value="$(arg xy_tolerance)"/>
+        <param name="hold_time" value="$(arg hold_time)"/>
+        <param name="segment_timeout" value="$(arg segment_timeout)"/>
+        <param name="republish_period" value="$(arg republish_period)"/>
+        <param name="use_clicked_center" value="$(arg use_clicked_center)"/>
+        <param unless="$(eval arg('obstacle_x') == '')" name="obstacle_x" value="$(arg obstacle_x)"/>
+        <param unless="$(eval arg('obstacle_y') == '')" name="obstacle_y" value="$(arg obstacle_y)"/>
+        <param unless="$(eval arg('obstacle_z') == '')" name="obstacle_z" value="$(arg obstacle_z)"/>
+    </node>
+</launch>

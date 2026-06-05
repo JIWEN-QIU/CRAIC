@@ -173,6 +173,9 @@ namespace super_planner {
         vector<double> time_consuming_;
 
         vector<Vec3f> sphereical_neighbor_list_;
+
+        void RefreshFineInfNeighbors();
+
     public:
 
 
@@ -202,6 +205,12 @@ namespace super_planner {
         void GetOneMpcCommandFromTraj(quadrotor_msgs::MpcPositionCommand &pos_cmd, bool &traj_finish);
 
         void GetModuleTimeConsuming(vector<double> &time);
+
+        void SetRobotRadius(const double robot_r);
+
+        double GetRobotRadius() const {
+            return cfg_.robot_r;
+        }
 
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:

@@ -1,0 +1,45 @@
+<launch>
+  <arg name="camera_topic" default="/usb_cam/image_raw" />
+  <arg name="config_path" default="/home/n150/CRAIC_ws/src/camera/uav-4-class/config.json" />
+  <arg name="enable_usb_cam" default="true" />
+  <arg name="video_device" default="/dev/video0" />
+  <arg name="image_width" default="640" />
+  <arg name="image_height" default="480" />
+  <arg name="pixel_format" default="mjpeg" />
+  <arg name="framerate" default="15" />
+  <arg name="publish_debug" default="true" />
+  <arg name="show_gui" default="false" />
+  <arg name="enable_center_roi" default="true" />
+  <arg name="center_roi_ratio" default="0.60" />
+  <arg name="launch_rqt" default="true" />
+  <arg name="rqt_image_topic" default="/debug_image" />
+
+  <node if="$(arg enable_usb_cam)" name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
+    <param name="video_device" value="$(arg video_device)" />
+    <param name="image_width" value="$(arg image_width)" />
+    <param name="image_height" value="$(arg image_height)" />
+    <param name="pixel_format" value="$(arg pixel_format)" />
+    <param name="framerate" value="$(arg framerate)" />
+    <param name="camera_frame_id" value="usb_cam" />
+    <param name="io_method" value="mmap" />
+  </node>
+
+  <node pkg="uav_4class_infer" type="uav_4class_node.py" name="uav_4class_infer" output="screen">
+    <param name="camera_topic" value="$(arg camera_topic)" />
+    <param name="config_path" value="$(arg config_path)" />
+    <param name="publish_debug" value="$(arg publish_debug)" />
+    <param name="show_gui" value="$(arg show_gui)" />
+    <param name="enable_center_roi" value="$(arg enable_center_roi)" />
+    <param name="center_roi_ratio" value="$(arg center_roi_ratio)" />
+    <remap from="~target_info" to="/target_info" />
+    <remap from="~target_coords" to="/target_coords" />
+    <remap from="~debug_image" to="/debug_image" />
+  </node>
+
+  <node if="$(arg launch_rqt)"
+        name="uav_4class_rqt_image_view"
+        pkg="rqt_image_view"
+        type="rqt_image_view"
+        args="$(arg rqt_image_topic)"
+        output="screen" />
+</launch>

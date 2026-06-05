@@ -1,0 +1,53 @@
+<launch>
+    <!--
+        RViz-only SUPER preview mode.
+
+        This launch keeps the live Odin odometry/cloud input and SUPER planning
+        visualization, but it does not start px4ctrl and does not relay
+        /super/setpoints_cmd_raw to /setpoints_cmd.
+    -->
+
+    <arg name="input_odin_odom_topic" default="/odin1/odometry_highfreq"/>
+    <arg name="super_node_name" default="fsm_node"/>
+    <arg name="super_odom_topic" default="/odin/odom_for_px4ctrl"/>
+    <arg name="super_cloud_topic" default="/odin1/cloud_slam"/>
+    <arg name="preview_height" default="1.3"/>
+    <arg name="max_vel" default="0.8"/>
+    <arg name="max_acc" default="1.5"/>
+    <arg name="replan_rate" default="10.0"/>
+    <arg name="frontend_in_known_free" default="true"/>
+
+    <include file="$(find craic_odin_px4_adapter)/launch/super_odin_px4.launch">
+        <arg name="start_odom_adapter" value="true"/>
+        <arg name="start_px4ctrl" value="false"/>
+        <arg name="start_auto_mission" value="false"/>
+        <arg name="start_command_relay" value="false"/>
+        <arg name="super_node_name" value="$(arg super_node_name)"/>
+        <arg name="input_odin_odom_topic" value="$(arg input_odin_odom_topic)"/>
+        <arg name="override_px4ctrl_odom_z" value="true"/>
+        <arg name="px4ctrl_odom_z" value="$(arg preview_height)"/>
+        <arg name="super_odom_topic" value="$(arg super_odom_topic)"/>
+        <arg name="super_cloud_topic" value="$(arg super_cloud_topic)"/>
+        <arg name="rviz_goal_height" value="$(arg preview_height)"/>
+        <arg name="rviz_use_current_height" value="false"/>
+        <arg name="max_vel" value="$(arg max_vel)"/>
+        <arg name="max_acc" value="$(arg max_acc)"/>
+        <arg name="replan_rate" value="$(arg replan_rate)"/>
+        <arg name="frontend_in_known_free" value="$(arg frontend_in_known_free)"/>
+    </include>
+
+    <node pkg="craic_odin_px4_adapter"
+          type="super_preview_visualizer.py"
+          name="super_preview_visualizer"
+          output="screen">
+        <param name="cmd_topic" value="/super/setpoints_cmd_raw"/>
+        <param name="goal_topic" value="/goal"/>
+        <param name="frame_id" value="odom"/>
+        <param name="path_topic" value="/super_preview/command_path"/>
+        <param name="path_marker_topic" value="/super_preview/command_path_marker"/>
+        <param name="exp_traj_topic" value="/$(arg super_node_name)/visualization/exp_traj"/>
+        <param name="exp_sfcs_topic" value="/$(arg super_node_name)/visualization/exp_sfcs"/>
+        <param name="receding_traj_topic" value="/$(arg super_node_name)/visualization/receding_traj"/>
+        <param name="goal_marker_topic" value="/$(arg super_node_name)/visualization/goal"/>
+    </node>
+</launch>

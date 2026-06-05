@@ -20,7 +20,7 @@ branches:
   left:
     waypoints:
       - id: landing_left_approach
-        point: [0.0, 1.6, 1.60]
+        point: [0.0, 1.6, 1.35]
         action: approach_landing_left
         hold_time: 0.0
         yaw: null
@@ -28,7 +28,7 @@ branches:
   right:
     waypoints:
       - id: landing_right_approach
-        point: [0.0, -1.6, 1.60]
+        point: [0.0, -1.6, 1.35]
         action: approach_landing_right
         hold_time: 0.0
         yaw: null

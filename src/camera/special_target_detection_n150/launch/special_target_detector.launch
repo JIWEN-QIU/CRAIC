@@ -1,0 +1,45 @@
+<launch>
+  <arg name="camera_topic" default="/usb_cam/image_raw"/>
+  <arg name="enable_usb_cam" default="true"/>
+  <arg name="video_device" default="/dev/video0"/>
+  <arg name="image_width" default="640"/>
+  <arg name="image_height" default="480"/>
+  <arg name="pixel_format" default="mjpeg"/>
+  <arg name="framerate" default="15"/>
+
+  <arg name="weights"
+       default="$(find special_target_detection_n150)/special_target_detection_n150/weights/best.pt"/>
+  <arg name="conf" default="0.25"/>
+  <arg name="iou" default="0.7"/>
+  <arg name="device" default="cpu"/>
+  <arg name="max_fps" default="3.0"/>
+  <arg name="stable_count" default="3"/>
+  <arg name="publish_debug_image" default="true"/>
+  <arg name="result_topic" default="/special_target/result"/>
+  <arg name="debug_image_topic" default="/special_target/debug_image"/>
+
+  <node if="$(arg enable_usb_cam)" name="special_target_usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
+    <param name="video_device" value="$(arg video_device)"/>
+    <param name="image_width" value="$(arg image_width)"/>
+    <param name="image_height" value="$(arg image_height)"/>
+    <param name="pixel_format" value="$(arg pixel_format)"/>
+    <param name="framerate" value="$(arg framerate)"/>
+    <param name="camera_frame_id" value="usb_cam"/>
+    <param name="io_method" value="mmap"/>
+    <remap from="~image_raw" to="$(arg camera_topic)"/>
+    <remap from="~camera_info" to="/usb_cam/camera_info"/>
+  </node>
+
+  <node name="special_target_detector" pkg="special_target_detection_n150" type="special_target_detector_node.py" output="screen">
+    <param name="camera_topic" value="$(arg camera_topic)"/>
+    <param name="weights" value="$(arg weights)"/>
+    <param name="conf" value="$(arg conf)"/>
+    <param name="iou" value="$(arg iou)"/>
+    <param name="device" value="$(arg device)"/>
+    <param name="max_fps" value="$(arg max_fps)"/>
+    <param name="stable_count" value="$(arg stable_count)"/>
+    <param name="publish_debug_image" value="$(arg publish_debug_image)"/>
+    <remap from="~result" to="$(arg result_topic)"/>
+    <remap from="~debug_image" to="$(arg debug_image_topic)"/>
+  </node>
+</launch>

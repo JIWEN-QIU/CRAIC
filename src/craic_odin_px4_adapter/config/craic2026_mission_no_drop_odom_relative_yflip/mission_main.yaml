@@ -29,7 +29,7 @@ task_completion_policy:
   scan_targets_exception:
     task_file: mission_03_scan_targets.yaml
     type: per_waypoint_descend_infer
-    cruise_z: 1.60
+    cruise_z: 1.35
     scan_z: 0.12
     infer_timeout: 10.0
     result_topic: "/target_info"

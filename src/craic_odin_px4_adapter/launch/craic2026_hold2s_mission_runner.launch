@@ -12,8 +12,10 @@
     <arg name="qr_result_topic" default="/qr_landing_side"/>
     <arg name="qr_payload_topic" default="/qr_data"/>
     <arg name="qr_wait_timeout" default="10.0"/>
-    <arg name="qr_scan_z" default="0.52"/>
-    <arg name="qr_cruise_z" default="1.6"/>
+    <arg name="qr_scan_z" default="0.58"/>
+    <arg name="qr_cruise_z" default="1.35"/>
+    <arg name="qr_launch_package" default="two_stage_infer"/>
+    <arg name="qr_launch_file" default="two_stage.launch"/>
     <arg name="max_task_id" default="-1"/>
     <arg name="max_waypoint_index" default="-1"/>
     <arg name="start_perception" default="false"/>
@@ -22,9 +24,14 @@
     <arg name="show_perception_windows" default="true"/>
     <arg name="enable_target_echo" default="false"/>
     <arg name="auto_takeoff" default="true"/>
-    <arg name="auto_takeoff_height" default="1.6"/>
+    <arg name="auto_takeoff_height" default="1.0"/>
     <arg name="auto_takeoff_timeout" default="35.0"/>
     <arg name="takeoff_command_duration" default="1.0"/>
+    <arg name="post_takeoff_climb_enabled" default="true"/>
+    <arg name="post_takeoff_climb_x" default="0.0"/>
+    <arg name="post_takeoff_climb_y" default="0.0"/>
+    <arg name="post_takeoff_climb_z" default="1.35"/>
+    <arg name="post_takeoff_climb_timeout" default="15.0"/>
     <arg name="takeoff_land_topic" default="/px4ctrl/takeoff_land"/>
     <arg name="auto_land" default="true"/>
     <arg name="land_command_duration" default="5.0"/>
@@ -32,13 +39,43 @@
     <arg name="scan_task_name" default="scan_image_targets"/>
     <arg name="pre_scan_launch_task_name" default="orbit_obstacle"/>
     <arg name="pre_scan_launch_hold_time" default="6.0"/>
-    <arg name="scan_descent_z" default="0.12"/>
-    <arg name="scan_cruise_z" default="1.6"/>
-    <arg name="special_drop_descent_z" default="0.12"/>
-    <arg name="special_drop_cruise_z" default="1.6"/>
+    <arg name="scan_detect_z" default="0.42"/>
+    <arg name="scan_drop_z" default="0.14"/>
+    <arg name="scan_cruise_z" default="1.35"/>
+    <arg name="special_drop_descent_z" default="0.09"/>
+    <arg name="special_drop_cruise_z" default="1.35"/>
+    <arg name="special_detect_z" default="0.62"/>
+    <arg name="special_detector_enabled" default="true"/>
+    <arg name="special_detector_launch_package" default="special_target_detection_n150"/>
+    <arg name="special_detector_launch_file" default="special_target_detector.launch"/>
+    <arg name="special_camera_topic" default="/usb_cam/image_raw"/>
+    <arg name="special_detector_enable_usb_cam" default="true"/>
+    <arg name="special_result_topic" default="/special_target/result"/>
+    <arg name="special_confirm_count" default="3"/>
+    <arg name="special_detect_timeout" default="10.0"/>
+    <arg name="special_timeout_release_fallback" default="true"/>
+    <arg name="ring_detector_after_special_enabled" default="true"/>
+    <arg name="ring_detector_turn_yaw" default="-1.57079632679"/>
+    <arg name="ring_detector_yaw_tolerance" default="0.15"/>
+    <arg name="ring_detector_turn_timeout" default="8.0"/>
+    <arg name="ring_detector_wait_time" default="60.0"/>
+    <arg name="ring_detector_launch_package" default="ring_detector"/>
+    <arg name="ring_detector_launch_file" default="ring_detector.launch"/>
+    <arg name="ring_detector_center_estimation_mode" default="ring_size"/>
+    <arg name="ring_detector_size_shape_source" default="min_area_rect"/>
+    <arg name="ring_detector_size_alpha_policy" default="max"/>
+    <arg name="ring_detector_camera_xyz_offset_base" default="[0.0, 0.04, 0.0]"/>
+    <arg name="ring_task_name" default="ring_placeholder_search"/>
+    <arg name="ring_center_topic" default="/ring_detector/center_odom_latched"/>
+    <arg name="ring_center_max_age" default="3.0"/>
+    <arg name="ring_approach_distance" default="0.8"/>
+    <arg name="ring_exit_distance" default="0.8"/>
+    <arg name="ring_min_z" default="0.8"/>
+    <arg name="ring_max_z" default="1.8"/>
+    <arg name="super_ring_radius_service" default="/super_planner/set_ring_radius_mode"/>
     <arg name="scan_result_timeout" default="10.0"/>
-    <arg name="scan_launch_package" default="two_stage_infer"/>
-    <arg name="scan_launch_file" default="two_stage.launch"/>
+    <arg name="scan_launch_package" default="uav_4class_infer"/>
+    <arg name="scan_launch_file" default="uav_4class.launch"/>
     <arg name="scan_process_prestarted" default="false"/>
     <arg name="scan_result_topic" default="/target_info"/>
     <arg name="drop_enabled" default="false"/>
@@ -58,11 +95,11 @@
     </include>
 
     <!-- 可选：任务开始时预启动视觉链路。
-         默认关闭；默认时序由 runner 在 mission_02 最后一点启动 two_stage.launch，
+         默认关闭；默认时序由 runner 在 mission_02 最后一点启动 uav_4class.launch，
          mission_03 最后一点结束后关闭。
          - 二维码识别用于 mission_01_takeoff_qr.yaml 的 read_qr
-         - 两段式分类用于 mission_03_scan_targets.yaml 的 classify_image_target
-         - scan_process_prestarted=true 时 runner 后续不会重复 roslaunch 第二套 two_stage.launch -->
+         - 四分类图像靶识别用于 mission_03_scan_targets.yaml 的 classify_image_target
+         - scan_process_prestarted=true 时 runner 后续不会重复 roslaunch 第二套扫描识别链路 -->
     <include if="$(arg start_perception)" file="$(find two_stage_infer)/launch/two_stage.launch">
         <arg name="camera_topic" value="$(arg camera_topic)"/>
         <arg name="enable_usb_cam" value="$(arg enable_usb_cam)"/>
@@ -90,12 +127,19 @@
         <param name="qr_wait_timeout" value="$(arg qr_wait_timeout)"/>
         <param name="qr_scan_z" value="$(arg qr_scan_z)"/>
         <param name="qr_cruise_z" value="$(arg qr_cruise_z)"/>
+        <param name="qr_launch_package" value="$(arg qr_launch_package)"/>
+        <param name="qr_launch_file" value="$(arg qr_launch_file)"/>
         <param name="max_task_id" value="$(arg max_task_id)"/>
         <param name="max_waypoint_index" value="$(arg max_waypoint_index)"/>
         <param name="auto_takeoff" value="$(arg auto_takeoff)"/>
         <param name="auto_takeoff_height" value="$(arg auto_takeoff_height)"/>
         <param name="auto_takeoff_timeout" value="$(arg auto_takeoff_timeout)"/>
         <param name="takeoff_command_duration" value="$(arg takeoff_command_duration)"/>
+        <param name="post_takeoff_climb_enabled" value="$(arg post_takeoff_climb_enabled)"/>
+        <param name="post_takeoff_climb_x" value="$(arg post_takeoff_climb_x)"/>
+        <param name="post_takeoff_climb_y" value="$(arg post_takeoff_climb_y)"/>
+        <param name="post_takeoff_climb_z" value="$(arg post_takeoff_climb_z)"/>
+        <param name="post_takeoff_climb_timeout" value="$(arg post_takeoff_climb_timeout)"/>
         <param name="takeoff_land_topic" value="$(arg takeoff_land_topic)"/>
         <param name="auto_land" value="$(arg auto_land)"/>
         <param name="land_command_duration" value="$(arg land_command_duration)"/>
@@ -103,10 +147,40 @@
         <param name="scan_task_name" value="$(arg scan_task_name)"/>
         <param name="pre_scan_launch_task_name" value="$(arg pre_scan_launch_task_name)"/>
         <param name="pre_scan_launch_hold_time" value="$(arg pre_scan_launch_hold_time)"/>
-        <param name="scan_descent_z" value="$(arg scan_descent_z)"/>
+        <param name="scan_detect_z" value="$(arg scan_detect_z)"/>
+        <param name="scan_drop_z" value="$(arg scan_drop_z)"/>
         <param name="scan_cruise_z" value="$(arg scan_cruise_z)"/>
         <param name="special_drop_descent_z" value="$(arg special_drop_descent_z)"/>
         <param name="special_drop_cruise_z" value="$(arg special_drop_cruise_z)"/>
+        <param name="special_detect_z" value="$(arg special_detect_z)"/>
+        <param name="special_detector_enabled" value="$(arg special_detector_enabled)"/>
+        <param name="special_detector_launch_package" value="$(arg special_detector_launch_package)"/>
+        <param name="special_detector_launch_file" value="$(arg special_detector_launch_file)"/>
+        <param name="special_camera_topic" value="$(arg special_camera_topic)"/>
+        <param name="special_detector_enable_usb_cam" value="$(arg special_detector_enable_usb_cam)"/>
+        <param name="special_result_topic" value="$(arg special_result_topic)"/>
+        <param name="special_confirm_count" value="$(arg special_confirm_count)"/>
+        <param name="special_detect_timeout" value="$(arg special_detect_timeout)"/>
+        <param name="special_timeout_release_fallback" value="$(arg special_timeout_release_fallback)"/>
+        <param name="ring_detector_after_special_enabled" value="$(arg ring_detector_after_special_enabled)"/>
+        <param name="ring_detector_turn_yaw" value="$(arg ring_detector_turn_yaw)"/>
+        <param name="ring_detector_yaw_tolerance" value="$(arg ring_detector_yaw_tolerance)"/>
+        <param name="ring_detector_turn_timeout" value="$(arg ring_detector_turn_timeout)"/>
+        <param name="ring_detector_wait_time" value="$(arg ring_detector_wait_time)"/>
+        <param name="ring_detector_launch_package" value="$(arg ring_detector_launch_package)"/>
+        <param name="ring_detector_launch_file" value="$(arg ring_detector_launch_file)"/>
+        <param name="ring_detector_center_estimation_mode" value="$(arg ring_detector_center_estimation_mode)"/>
+        <param name="ring_detector_size_shape_source" value="$(arg ring_detector_size_shape_source)"/>
+        <param name="ring_detector_size_alpha_policy" value="$(arg ring_detector_size_alpha_policy)"/>
+        <param name="ring_detector_camera_xyz_offset_base" value="$(arg ring_detector_camera_xyz_offset_base)"/>
+        <param name="ring_task_name" value="$(arg ring_task_name)"/>
+        <param name="ring_center_topic" value="$(arg ring_center_topic)"/>
+        <param name="ring_center_max_age" value="$(arg ring_center_max_age)"/>
+        <param name="ring_approach_distance" value="$(arg ring_approach_distance)"/>
+        <param name="ring_exit_distance" value="$(arg ring_exit_distance)"/>
+        <param name="ring_min_z" value="$(arg ring_min_z)"/>
+        <param name="ring_max_z" value="$(arg ring_max_z)"/>
+        <param name="super_ring_radius_service" value="$(arg super_ring_radius_service)"/>
         <param name="scan_result_timeout" value="$(arg scan_result_timeout)"/>
         <param name="scan_launch_package" value="$(arg scan_launch_package)"/>
         <param name="scan_launch_file" value="$(arg scan_launch_file)"/>

@@ -6,12 +6,12 @@ transform_already_applied: true
 special_policy:
   descend_for_drop: true
   drop_enabled: true
-  drop_z: 0.12
-  cruise_z: 1.60
+  drop_z: 0.09
+  cruise_z: 1.35
 
 waypoints:
   - id: special_target_observe
-    point: [6.0, 1.0, 1.60]
+    point: [5.95, 1.05, 1.35]
     action: observe_special_target
     hold_time: 2.0
     yaw: null
@@ -21,4 +21,4 @@ completion:
   final_waypoint: special_target_observe
   final_hold_time: 2.0
   perception_required: false
-  note: "run.sh 启用 drop_enabled 时，到达 special_target_observe 后下降到 0.12m，保持 2 秒后释放第三个磁铁，再回升到 1.60m 继续；不等待特殊靶检测。"
+  note: "run.sh 启用 drop_enabled 时，到达 special_target_observe 后下降到 0.09m，保持 2 秒后释放第三个磁铁，再回升到 1.35m；随后原地转向 yaw=-1.5708（机头朝 odom y 负方向），启动 ring_detector.launch 并等待 /ring_detector/center_odom_latched。若收到新鲜中心点则立即视为任务四完成并进入任务五；若 60 秒仍无新鲜中心点则跳过任务五进入任务六。"

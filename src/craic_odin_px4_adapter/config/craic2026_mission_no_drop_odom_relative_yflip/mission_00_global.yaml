@@ -20,16 +20,16 @@ coordinate_frame:
     - "如果 odom 原点或方向变化，必须重新生成本目录 YAML"
 
 height:
-  cruise_z: 1.60
-  qr_observe_z: 1.60
-  qr_scan_z: 0.52
-  orbit_z: 1.60
-  target_scan_z: 1.60
+  cruise_z: 1.35
+  qr_observe_z: 1.35
+  qr_scan_z: 0.58
+  orbit_z: 1.35
+  target_scan_z: 1.35
   target_scan_descent_z: 0.12
-  special_z: 1.60
-  special_drop_descent_z: 0.12
-  ring_z: 1.60
-  landing_approach_z: 1.60
+  special_z: 1.35
+  special_drop_descent_z: 0.09
+  ring_z: 1.35
+  landing_approach_z: 1.35
 
 motion:
   default_speed: 0.5
@@ -50,7 +50,7 @@ task_completion_policy:
     takeoff_land_topic: "/px4ctrl/takeoff_land"
   scan_targets_exception:
     type: per_waypoint_descend_infer
-    cruise_z: 1.60
+    cruise_z: 1.35
     scan_z: 0.12
     infer_timeout: 10.0
     result_topic: "/target_info"
@@ -60,12 +60,12 @@ odom_relative_points:
   qr: [1.8, 0.0]
   obstacle_center: [4.3, 0.0]
 
-  image_top_left: [3.6, -1.6]
-  image_top_right: [1.8, -1.6]
-  image_bottom_right: [1.8, 1.6]
-  image_bottom_left: [3.6, 1.6]
+  image_top_left: [3.5, -1.56]
+  image_top_right: [1.7, -1.56]
+  image_bottom_right: [1.7, 1.64]
+  image_bottom_left: [3.5, 1.64]
 
-  special_target: [6.0, 1.0]
+  special_target: [5.95, 1.05]
 
   ring_search_start: [7.2, -1.6]
   ring_search_mid: [6.0, -1.6]

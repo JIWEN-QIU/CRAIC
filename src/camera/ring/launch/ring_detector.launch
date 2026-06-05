@@ -1,0 +1,100 @@
+<launch>
+  <arg name="camera_topic" default="/odin1/image"/>
+  <arg name="cloud_topic" default="/odin1/cloud_slam"/>
+  <arg name="odom_topic" default="/odin1/odometry_highfreq"/>
+  <arg name="wiwc_topic" default="/odin1/wiwc"/>
+  <arg name="enable_usb_cam" default="false"/>
+  <arg name="video_device" default="/dev/video0"/>
+  <arg name="image_width" default="640"/>
+  <arg name="image_height" default="480"/>
+  <arg name="pixel_format" default="yuyv"/>
+
+  <arg name="model_path"
+       default="$(find ring_detector)/n150_benchmark_package/deployment_n150/openvino_model/best_openvino_model"/>
+  <arg name="imgsz" default="512"/>
+  <arg name="conf" default="0.25"/>
+  <arg name="device" default="cpu"/>
+  <arg name="max_fps" default="10.0"/>
+  <arg name="publish_debug_image" default="true"/>
+  <arg name="publish_center_odom" default="true"/>
+  <arg name="center_estimation_mode" default="known_height"/>
+  <arg name="center_pixel_mode" default="mask_centroid"/>
+  <arg name="center_pixel_offset_uv" default="[0.0, 0.0]"/>
+  <arg name="use_known_center_height" default="true"/>
+  <arg name="known_center_z" default="1.3"/>
+  <arg name="known_height_ray_elevation_bias_deg" default="0.0"/>
+  <arg name="known_height_horizontal_scale" default="1.0"/>
+  <arg name="min_known_height_delta" default="0.2"/>
+  <arg name="ring_outer_diameter_m" default="1.2"/>
+  <arg name="ring_inner_diameter_m" default="0.9"/>
+  <arg name="ring_size_diameter_source" default="outer"/>
+  <arg name="ring_size_shape_source" default="min_area_rect"/>
+  <arg name="ring_size_alpha_policy" default="max"/>
+  <arg name="ring_size_depth_scale" default="1.0"/>
+  <arg name="latch_center_enabled" default="true"/>
+  <arg name="latch_min_samples" default="8"/>
+  <arg name="latch_max_std_m" default="0.12"/>
+  <arg name="latch_max_samples" default="20"/>
+  <arg name="camera_extrinsic_mode" default="odin_calib"/>
+  <arg name="camera_xyz_offset_base" default="[0.0, 0.0, 0.0]"/>
+  <arg name="manual_camera_xyz_base" default="[0.0, 0.0, 0.0]"/>
+  <arg name="manual_camera_rpy_deg" default="[0.0, 0.0, 0.0]"/>
+  <arg name="calib_path" default="$(find odin_ros_driver)/config/calib.yaml"/>
+  <arg name="min_ring_points" default="30"/>
+  <arg name="max_cloud_age" default="3.0"/>
+  <arg name="max_odom_age" default="5.0"/>
+  <arg name="projection_mask_dilate_px" default="8"/>
+  <arg name="max_cloud_points" default="60000"/>
+  <arg name="plane_inlier_threshold" default="0.08"/>
+
+  <node if="$(arg enable_usb_cam)" name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
+    <param name="video_device" value="$(arg video_device)"/>
+    <param name="image_width" value="$(arg image_width)"/>
+    <param name="image_height" value="$(arg image_height)"/>
+    <param name="pixel_format" value="$(arg pixel_format)"/>
+    <param name="camera_frame_id" value="usb_cam"/>
+  </node>
+
+  <node name="ring_detector" pkg="ring_detector" type="ring_detector_node.py" output="screen">
+    <param name="camera_topic" value="$(arg camera_topic)"/>
+    <param name="cloud_topic" value="$(arg cloud_topic)"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="wiwc_topic" value="$(arg wiwc_topic)"/>
+    <param name="model_path" value="$(arg model_path)"/>
+    <param name="imgsz" value="$(arg imgsz)"/>
+    <param name="conf" value="$(arg conf)"/>
+    <param name="device" value="$(arg device)"/>
+    <param name="max_fps" value="$(arg max_fps)"/>
+    <param name="publish_debug_image" value="$(arg publish_debug_image)"/>
+    <param name="publish_center_odom" value="$(arg publish_center_odom)"/>
+    <param name="center_estimation_mode" value="$(arg center_estimation_mode)"/>
+    <param name="center_pixel_mode" value="$(arg center_pixel_mode)"/>
+    <param name="center_pixel_offset_uv" value="$(arg center_pixel_offset_uv)"/>
+    <param name="use_known_center_height" value="$(arg use_known_center_height)"/>
+    <param name="known_center_z" value="$(arg known_center_z)"/>
+    <param name="known_height_ray_elevation_bias_deg" value="$(arg known_height_ray_elevation_bias_deg)"/>
+    <param name="known_height_horizontal_scale" value="$(arg known_height_horizontal_scale)"/>
+    <param name="min_known_height_delta" value="$(arg min_known_height_delta)"/>
+    <param name="ring_outer_diameter_m" value="$(arg ring_outer_diameter_m)"/>
+    <param name="ring_inner_diameter_m" value="$(arg ring_inner_diameter_m)"/>
+    <param name="ring_size_diameter_source" value="$(arg ring_size_diameter_source)"/>
+    <param name="ring_size_shape_source" value="$(arg ring_size_shape_source)"/>
+    <param name="ring_size_alpha_policy" value="$(arg ring_size_alpha_policy)"/>
+    <param name="ring_size_depth_scale" value="$(arg ring_size_depth_scale)"/>
+    <param name="latch_center_enabled" value="$(arg latch_center_enabled)"/>
+    <param name="latch_min_samples" value="$(arg latch_min_samples)"/>
+    <param name="latch_max_std_m" value="$(arg latch_max_std_m)"/>
+    <param name="latch_max_samples" value="$(arg latch_max_samples)"/>
+    <param name="camera_extrinsic_mode" value="$(arg camera_extrinsic_mode)"/>
+    <param name="camera_xyz_offset_base" value="$(arg camera_xyz_offset_base)"/>
+    <param name="manual_camera_xyz_base" value="$(arg manual_camera_xyz_base)"/>
+    <param name="manual_camera_rpy_deg" value="$(arg manual_camera_rpy_deg)"/>
+    <param name="calib_path" value="$(arg calib_path)"/>
+    <param name="min_ring_points" value="$(arg min_ring_points)"/>
+    <param name="max_cloud_age" value="$(arg max_cloud_age)"/>
+    <param name="max_odom_age" value="$(arg max_odom_age)"/>
+    <param name="projection_mask_dilate_px" value="$(arg projection_mask_dilate_px)"/>
+    <param name="max_cloud_points" value="$(arg max_cloud_points)"/>
+    <param name="plane_inlier_threshold" value="$(arg plane_inlier_threshold)"/>
+  </node>
+</launch>

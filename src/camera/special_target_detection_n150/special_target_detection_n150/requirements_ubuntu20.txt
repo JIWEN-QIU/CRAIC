@@ -1,0 +1,4 @@
+ultralytics==8.4.31
+opencv-python
+pyyaml
+numpy

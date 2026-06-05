@@ -12,31 +12,31 @@ orbit:
 
 waypoints:
   - id: orbit_entry_right
-    point: [3.3, 0.0, 1.60]
+    point: [3.3, 0.0, 1.35]
     action: orbit_waypoint
     hold_time: 0.0
     yaw: null
 
   - id: orbit_bottom
-    point: [4.3, 1.0, 1.60]
+    point: [4.3, 1.0, 1.35]
     action: orbit_waypoint
     hold_time: 0.0
     yaw: null
 
   - id: orbit_left
-    point: [5.3, 0.0, 1.60]
+    point: [5.3, 0.0, 1.35]
     action: orbit_waypoint
     hold_time: 0.0
     yaw: null
 
   - id: orbit_top
-    point: [4.3, -1.0, 1.60]
+    point: [4.3, -1.0, 1.35]
     action: orbit_waypoint
     hold_time: 0.0
     yaw: null
 
   - id: orbit_exit_right
-    point: [3.3, 0.0, 1.60]
+    point: [3.3, 0.0, 1.35]
     action: orbit_waypoint
     hold_time: 2.0
     yaw: null

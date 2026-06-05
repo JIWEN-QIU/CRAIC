@@ -18,12 +18,15 @@ This is controlled by runner parameters:
 
 ```text
 auto_takeoff: true
-auto_takeoff_height: 1.6
+auto_takeoff_height: 1.0
 auto_takeoff_timeout: 35.0
+post_takeoff_climb_enabled: true
+post_takeoff_climb_point: [0.0, 0.0, 1.35]
+post_takeoff_climb_timeout: 15.0
 takeoff_land_topic: /px4ctrl/takeoff_land
 ```
 
-The default `auto_takeoff_height` matches the current px4ctrl config value in `ctrl_param_fpv.yaml`. After px4ctrl reaches that auto-takeoff height and switches to hover, the runner starts the YAML waypoints. In the default `super_goal` mode, the first waypoint remains `takeoff_climb [0.0, 0.0, 1.60]`, matching the 1.60m cruise baseline.
+The default `auto_takeoff_height` matches the current px4ctrl config value in `ctrl_param_fpv.yaml`. After px4ctrl reaches that auto-takeoff height, the runner first publishes a direct `[0.0, 0.0, 1.35]` climb point and waits for the real z check to pass. It then starts the YAML waypoints through the normal mission flow.
 
 Important: px4ctrl rejects AUTO_TAKEOFF if recent `/setpoints_cmd` commands are already being published. The runner therefore does not publish mission `PositionCommand` messages until auto-takeoff has completed.
 
@@ -45,24 +48,27 @@ goal_topic: /move_base_simple/goal
 check_z_reached: false
 ```
 
-With the current SUPER config, `fsm/click_height` is fixed to `1.6`, so normal `/move_base_simple/goal` travel goals are planned at 1.6 m. For that reason, the runner's default arrival check uses XY distance only during SUPER-guided travel.
+With the current SUPER config, `fsm/click_height` is fixed to `1.35`, so normal `/move_base_simple/goal` travel goals are planned at 1.35 m. For that reason, the runner's default arrival check uses XY distance only during SUPER-guided travel.
 
 ## Mission 3 Image Scan
 
 `mission_03_scan_targets.yaml` now uses a per-waypoint scan sequence for all four image targets:
 
-- Fly to the image target XY through SUPER at the 1.6 m click height.
-- Descend in place to 0.12 m using direct `/setpoints_cmd` publishing from the mission runner.
-- Start `roslaunch two_stage_infer two_stage.launch`.
-- Wait until a new `/target_info` message arrives, or continue after a 10 s timeout.
-- Hold at the drop height for at least 2 s before releasing a magnet.
+- Fly to the image target XY through SUPER at the 1.35 m click height.
+- Descend in place to 0.42 m using direct `/setpoints_cmd` publishing from the mission runner.
+- Start `roslaunch uav_4class_infer uav_4class.launch`.
+- Wait up to 10 s for `/target_info` to match the required drop target class.
+- If the result matches, descend to 0.14 m and hold at the drop height for at least 2 s before releasing a magnet.
+- If no target class matches in 10 s, climb back to 1.35 m and continue to the next image target.
+- Fallback drops also follow the 0.42 m recognition -> 0.14 m release route: drop at the third point when total releases are 0, and at the fourth point when total releases are 1.
+- Once mission 3 reaches two total releases, it completes early after climbing back to 1.35 m and enters mission 4.
 - Stop the launched inference process.
-- Climb back to 1.60 m using direct `/setpoints_cmd`.
+- Climb back to 1.35 m using direct `/setpoints_cmd`.
 - Continue to the next image target.
 
-After the fourth image target completes the same descend/infer/ascend sequence, mission 3 is complete immediately. It no longer holds 2 s at `image_bottom_left`.
+If two releases are not completed earlier, mission 3 completes after the fourth image target finishes the same descend/infer/ascend sequence. It no longer holds 2 s at `image_bottom_left`.
 
-This scan phase is a deliberate exception to the normal SUPER-only goal flow, because fixed `fsm/click_height=1.6` would otherwise prevent a 0.12 m descent command from taking effect through `/move_base_simple/goal`.
+This scan phase is a deliberate exception to the normal SUPER-only goal flow, because fixed `fsm/click_height=1.35` would otherwise prevent low-altitude detect/drop commands from taking effect through `/move_base_simple/goal`.
 
 ## Completion Policy
 
